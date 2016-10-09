@@ -152,7 +152,7 @@ void image_print(struct image *img)
     for(int j = 0; j < img->h; ++j)
     {
       int val = img->data[img->w * j + i];
-      printf("| %1d ", val);
+      printf("| %2d ", val);
     }
     printf("|\n");
   }
@@ -160,12 +160,16 @@ void image_print(struct image *img)
 
 void image_prety_print(struct image *img)
 {
-  for(int i = 0; i < img->w; ++i)
+  for(int j = 0; j < img->h; ++j)
   {
-    for(int j = 0; j < img->h; ++j)
+    for(int i = 0; i < img->w; ++i)
     {
       int val = img->data[img->w * j + i];
-      printf("%d",val!=0); //if val == 0 (black) print 0 else print 1 (white)
+      //printf("%d",val!=0); //if val == 0 (black) print 0 else print 1 (white)
+      if(val!=0)
+        printf("1");
+      else
+        printf(" ");
     }
     printf("\n");
   }
@@ -207,5 +211,6 @@ int main(int argc, char *argv[])
 
   SDL_FreeSurface(sdlimg);
   image_free(img);
+
   return 0;
 }
