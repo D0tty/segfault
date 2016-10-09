@@ -123,9 +123,9 @@ struct image* image_create(int w, int h)
   img->w = w;
   img->h = h;
   img->data = malloc ( sizeof(int) * (w * h));
-  for(int i = 0; i < w; ++i)
+  for(int j = 0; j < h; ++j)
   {
-    for(int j = 0; j < h; ++j)
+    for(int i = 0; i < w; ++i)
     {
       img->data[img->w * j + i] = 0;
     }
@@ -136,9 +136,9 @@ struct image* image_create(int w, int h)
 void image_fill(struct image *img)
 {
   int k = -1;
-  for(int i = 0; i < img->w; ++i)
+  for(int j = 0; j < img->h; ++j)
   {
-    for(int j = 0; j < img->h; ++j)
+    for(int i = 0; i < img->w; ++i)
     {
       img->data[img->w * j + i] = ++k;
     }
@@ -147,9 +147,9 @@ void image_fill(struct image *img)
 
 void image_print(struct image *img)
 {
-  for(int i = 0; i < img->w; ++i)
+  for(int j = 0; j < img->h; ++j)
   {
-    for(int j = 0; j < img->h; ++j)
+    for(int i = 0; i < img->w; ++i)
     {
       int val = img->data[img->w * j + i];
       printf("| %2d ", val);
@@ -179,9 +179,9 @@ struct image* image_get_from_SDL(SDL_Surface* sdlimg)
 {
   struct image *img;
   img = image_create(sdlimg->w, sdlimg->h);
-  for(int i = 0; i < img->w; ++i)
+  for(int j = 0; j < img->h; ++j)
   {
-    for(int j = 0; j < img->h; ++j)
+    for(int i = 0; i < img->w; ++i)
     {
       img->data[img->w * j + i] = getpixel(sdlimg, i, j) != 0;
     }
