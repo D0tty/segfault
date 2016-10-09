@@ -140,7 +140,8 @@ struct image* image_create(int w, int h)
   {
     for(int i = 0; i < w; ++i)
     {
-      img->data[img->w * j + i] = 0;
+      //img->data[img->w * j + i] = 0;
+      image_pixel(img, i, j) = 0;
     }
   }
   return img;
@@ -153,7 +154,8 @@ void image_fill(struct image *img)
   {
     for(int i = 0; i < img->w; ++i)
     {
-      img->data[img->w * j + i] = ++k;
+      //img->data[img->w * j + i] = ++k;
+      image_pixel(img, i, j) = ++k;
     }
   }
 }
@@ -164,7 +166,7 @@ void image_print(struct image *img)
   {
     for(int i = 0; i < img->w; ++i)
     {
-      int val = img->data[img->w * j + i];
+      int val = image_pixel(img, i, j); //img->data[img->w * j + i];
       printf("| %2d ", val);
     }
     printf("|\n");
@@ -177,7 +179,7 @@ void image_prety_print(struct image *img)
   {
     for(int i = 0; i < img->w; ++i)
     {
-      int val = img->data[img->w * j + i];
+      int val = image_pixel(img, i, j); //img->data[img->w * j + i];
       //printf("%d",val!=0); //if val == 0 (black) print 0 else print 1 (white)
       if(val!=0)
         printf("1");
