@@ -125,7 +125,9 @@ SDL_Surface* tobinary(SDL_Surface* img)
 
 /* SDL */
 
+/* Image Struct Fonctions */
 
+#define image_pixel(img, i, j) img->data[img->w * (i) + (j)]
 
 struct image* image_create(int w, int h)
 {
@@ -220,6 +222,8 @@ int main(int argc, char *argv[])
 
   image_prety_print(img);
 
+  printf("\n\n%d",image_pixel(img, 2, 1));
+  
   SDL_FreeSurface(sdlimg);
   image_free(img);
 
