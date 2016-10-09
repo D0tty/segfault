@@ -210,6 +210,26 @@ void image_free(struct image *img)
   free(img);
 }
 
+int is_line_blank(struct image *img, int y)
+{
+  int x = 0;
+  while( x < img->w && image_pixel(img, x, y))
+  {
+    ++x;
+  }
+  return x == img->w;
+}
+
+int is_column_blank(struct image *img, int x)
+{
+  int y = 0;
+  while( y < img->h && image_pixel(img, x, y))
+  {
+    ++y;
+  }
+  return y == img->h;
+}
+
 int main(int argc, char *argv[])
 {
 	if(argc < 2)
@@ -224,8 +244,16 @@ int main(int argc, char *argv[])
 
   image_prety_print(img);
 
-  printf("\n\n%d",image_pixel(img, 2, 1));
-  
+  for(int y = 0; y < img->h; ++y)
+  {
+    printf("Line %3d, is: %d\n", y, is_line_blank(img, y));
+  }
+
+  for(int x = 0; x < img->w; ++x)
+  {
+    printf("Column %3d, is: %d\n", x, is_column_blank(img, x));
+  }
+
   SDL_FreeSurface(sdlimg);
   image_free(img);
 
