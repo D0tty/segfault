@@ -127,7 +127,7 @@ SDL_Surface* tobinary(SDL_Surface* img)
 
 /* Image Struct Fonctions */
 
-#define image_pixel(img, i, j) img->data[img->w * (i) + (j)]
+#define image_pixel(img, i, j) img->data[img->w * (j) + (i)]
 
 struct image* image_create(int w, int h)
 {
@@ -196,7 +196,7 @@ struct image* image_get_from_SDL(SDL_Surface* sdlimg)
   {
     for(int i = 0; i < img->w; ++i)
     {
-      img->data[img->w * j + i] = getpixel(sdlimg, i, j) != 0;
+      image_pixel(img, i, j) = getpixel(sdlimg, i, j) != 0;
     }
   }
   return img;
