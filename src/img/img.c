@@ -10,21 +10,21 @@
 
 
 void wait_for_keypressed(void)
-{                                               
-  SDL_Event             event;                                               
-   // Infinite loop, waiting for event                                       
+{
+  SDL_Event             event;
+   // Infinite loop, waiting for event
   for (;;)
-  {                                                                   
-     // Take an event                                                         
-     SDL_PollEvent( &event );                                                  
-     // Switch on event type                                                   
-     switch (event.type) {                                                     
-     // Someone pressed a key -> leave the function                            
-     case SDL_KEYDOWN: return;                                                 
-     default: break;                                                           
-     }                                                                         
-   // Loop until we got the expected event                                     
-  }                                                                             
+  {
+     // Take an event
+     SDL_PollEvent( &event );
+     // Switch on event type
+     switch (event.type) {
+     // Someone pressed a key -> leave the function
+     case SDL_KEYDOWN: return;
+     default: break;
+     }
+   // Loop until we got the expected event
+  }
 }
 
 
@@ -143,29 +143,29 @@ SDL_Surface* tobinary(SDL_Surface* img)
 }
 
 SDL_Surface* display_image(SDL_Surface *img)
-{                                  
-  SDL_Surface          *screen;                                                 
-  // Set the window to the same size as the image                               
-  screen = SDL_SetVideoMode(img->w, img->h, 0, SDL_SWSURFACE|SDL_ANYFORMAT);    
-  if ( screen == NULL ) 
-  {                                                       
-   // error management                                                         
+{
+  SDL_Surface          *screen;
+  // Set the window to the same size as the image
+  screen = SDL_SetVideoMode(img->w, img->h, 0, SDL_SWSURFACE|SDL_ANYFORMAT);
+  if ( screen == NULL )
+  {
+   // error management
     errx(1, "Couldn't set %dx%d video mode: %s\n",
     img->w, img->h, SDL_GetError());
-  } 
-  
-  /* Blit onto the screen surface */                                            
-  if(SDL_BlitSurface(img, NULL, screen, NULL) < 0)                              
-    warnx("BlitSurface error: %s\n", SDL_GetError());                           
-                                                                                
-  // Update the screen                                                          
-  SDL_UpdateRect(screen, 0, 0, img->w, img->h);                                 
-                                                                                
-  // wait for a key                                                             
-  wait_for_keypressed();                                                        
-                                                                                
-  /// return the screen for further uses                                        
-  return screen;                                                                
+  }
+
+  /* Blit onto the screen surface */
+  if(SDL_BlitSurface(img, NULL, screen, NULL) < 0)
+    warnx("BlitSurface error: %s\n", SDL_GetError());
+
+  // Update the screen
+  SDL_UpdateRect(screen, 0, 0, img->w, img->h);
+
+  // wait for a key
+  wait_for_keypressed();
+
+  /// return the screen for further uses
+  return screen;
 }
 
 #define image_pixel(img, i, j) img->data[img->w * (j) + (i)]
@@ -335,7 +335,7 @@ int main(int argc, char *argv[])
   struct image *rect = image_get_rect(img, x, y, z, t);
   image_prety_print(rect);
   SDL_Surface *i = to_sdl_image(rect);
-  display_image(i);  
+  display_image(i);
 
 /*
   for(int y = 0; y < img->h; ++y)
