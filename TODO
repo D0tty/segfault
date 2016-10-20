@@ -1,9 +1,5 @@
 * WE NEED TO CODE
 
-* task distribution
-* a function SDL_Surface* to_sdl_image(struct image *img);
-    that returns the corresponding sdl image.
-    see: https://wiki.libsdl.org/SDL_CreateRGBSurface
 * we'll need to work on a basic paragraph recognition and then lines and then chars
 * we'll need to think this function recursively and returning someting iterable like a list
   so that we can shot each paragraph of a picture and then each lines and then chars
