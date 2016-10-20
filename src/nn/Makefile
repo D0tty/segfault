@@ -9,7 +9,7 @@ SRC= ../util/shuffle.c ../util/gaussrand.c network.c main.c
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
 
-all:
+all: main
 
 -include ${DEP}
 
