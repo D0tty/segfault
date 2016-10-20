@@ -12,13 +12,16 @@ OBJ= ${SRC:.c=.o}
 PGR= ${SRC:.c=}
 
 all: img
+	make proper
 
 img: img
 
 main: ${OBJ}
 
-clean cl:
-	rm -f *~ *.o
+proper pro:
+	rm -f *~ *.o *.d
+
+clean cl: pro
 	rm -f ${PGR}
 
 # END

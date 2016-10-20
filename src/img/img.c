@@ -293,32 +293,52 @@ int is_column_blank(struct image *img, int x)
   return y == img->h;
 }
 
+struct image* image_get_paragraph(struct image *img)
+{
+  int x = 0,
+      y = 0,
+      z = img->w - 1,
+      t = img->h - 1;
+  while(is_column_blank(img, x))
+  {
+    ++x;
+  }
+  while(is_column_blank(img, z))
+  {
+    --z;
+  }
+  while(is_line_blank(img, y))
+  {
+    ++y;
+  }
+  while(is_line_blank(img, t))
+  {
+    --t;
+  }
+  return image_get_rect(img, x, y, z, t);
+}
+
 int main(int argc, char *argv[])
 {
 	if(argc < 2)
     return 1;
+  //SDL init, load, gray, B&W
   init_sdl();
   SDL_Surface* sdlimg = load_image(argv[1]);
   tograyscale(sdlimg);
   tobinary(sdlimg);
 
-  struct image *img;
-  img = image_get_from_SDL(sdlimg);
+  //create struct image
+  struct image *img = image_get_from_SDL(sdlimg);
 
-  image_prety_print(img);
+	display_image(sdlimg);
 
-  /*Test de la fonction de découpage en rectangles*/
-
-  printf("\n");
-  printf("rectangle autour du texte de coucou_test.jpg");
-  printf("\n");
-  int x = 4, y = 3, z = img->w -1, t = img->h - 10;
-  struct image *rect = image_get_rect(img, x, y, z, t);
-  image_prety_print(rect);
-  SDL_Surface *i = to_sdl_image(rect);
-  display_image(i);
-
+  img = image_get_paragraph(img);  
   
+	sdlimg = to_sdl_image(img);
+
+	display_image(sdlimg);
+
   /* free  */
   SDL_FreeSurface(sdlimg);
   image_free(img);

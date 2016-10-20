@@ -44,3 +44,5 @@ void image_free(struct image *img);
 int is_line_blank(struct image *img, int y);
 
 int is_column_blank(struct image *img, int x);
+
+struct image* image_get_paragraph(struct image *img);
