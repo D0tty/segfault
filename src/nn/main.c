@@ -4,6 +4,7 @@
 #include <time.h>
 #include "network.h"
 #include "../util/vector.h"
+#include "../util/debug.h"
 
 int main(/*int argc, char *argv[]*/)
 {
