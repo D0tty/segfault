@@ -204,6 +204,20 @@ struct image* image_get_from_SDL(SDL_Surface* sdlimg)
   return img;
 }
 
+struct image* image_get_rect(struct image *img, int x, int y, int z, int t)
+{
+  int h = (t - y) + 1, w = (z - x) + 1;
+  struct image *rectImg = image_create(w, h);
+  for(int j = y, jt = 0; j <= t; ++j, ++jt)
+  {
+    for(int i = x, it = 0; i <= z; ++i, ++it)
+    {
+      image_pixel(rectImg, it, jt) = image_pixel(img, i, j);
+    }
+  }
+  return rectImg;
+}
+
 void image_free(struct image *img)
 {
   free(img->data);
@@ -244,6 +258,15 @@ int main(int argc, char *argv[])
 
   image_prety_print(img);
 
+  /*Test de la fonction de découpage en rectangles*/
+  
+  printf("\n");
+  printf("rectangle autour du texte de coucou_test.jpg");
+  printf("\n");
+  int x = 4, y = 3, z = img->w -1, t = img->h - 10;
+  struct image *rect = image_get_rect(img, x, y, z, t);
+  image_prety_print(rect);
+  /*
   for(int y = 0; y < img->h; ++y)
   {
     printf("Line %3d, is: %d\n", y, is_line_blank(img, y));
@@ -252,7 +275,7 @@ int main(int argc, char *argv[])
   for(int x = 0; x < img->w; ++x)
   {
     printf("Column %3d, is: %d\n", x, is_column_blank(img, x));
-  }
+  }*/
 
   SDL_FreeSurface(sdlimg);
   image_free(img);
