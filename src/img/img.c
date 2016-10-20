@@ -12,18 +12,13 @@
 void wait_for_keypressed(void)
 {
   SDL_Event             event;
-   // Infinite loop, waiting for event
   for (;;)
   {
-     // Take an event
      SDL_PollEvent( &event );
-     // Switch on event type
      switch (event.type) {
-     // Someone pressed a key -> leave the function
      case SDL_KEYDOWN: return;
      default: break;
      }
-   // Loop until we got the expected event
   }
 }
 
@@ -87,24 +82,20 @@ Uint32 getpixel(SDL_Surface *surface, unsigned x, unsigned y)
   }
   return 0;
 }
+
 void init_sdl(void)
 {
-  // Init only the video part
   if( SDL_Init(SDL_INIT_VIDEO)==-1 )
   {
-    // If it fails, die with an error message
     errx(1,"Could not initialize SDL: %s.\n", SDL_GetError());
   }
-  // We don't really need a function for that ...
 }
 
 SDL_Surface* load_image(char *path)
 {
   SDL_Surface          *img;
-  // Load an image using SDL_image with format detection
   img = IMG_Load(path);
   if (!img)
-    // If it fails, die with an error message
     errx(3, "can't load %s: %s", path, IMG_GetError());
   return img;
 }
@@ -145,11 +136,9 @@ SDL_Surface* tobinary(SDL_Surface* img)
 SDL_Surface* display_image(SDL_Surface *img)
 {
   SDL_Surface          *screen;
-  // Set the window to the same size as the image
   screen = SDL_SetVideoMode(img->w, img->h, 0, SDL_SWSURFACE|SDL_ANYFORMAT);
   if ( screen == NULL )
   {
-   // error management
     errx(1, "Couldn't set %dx%d video mode: %s\n",
     img->w, img->h, SDL_GetError());
   }
@@ -158,17 +147,12 @@ SDL_Surface* display_image(SDL_Surface *img)
   if(SDL_BlitSurface(img, NULL, screen, NULL) < 0)
     warnx("BlitSurface error: %s\n", SDL_GetError());
 
-  // Update the screen
   SDL_UpdateRect(screen, 0, 0, img->w, img->h);
 
-  // wait for a key
   wait_for_keypressed();
 
-  /// return the screen for further uses
   return screen;
 }
-
-#define image_pixel(img, i, j) img->data[img->w * (j) + (i)]
 
 SDL_Surface* to_sdl_image(struct image *img)
 {
@@ -208,7 +192,6 @@ struct image* image_create(int w, int h)
   {
     for(int i = 0; i < w; ++i)
     {
-      //img->data[img->w * j + i] = 0;
       image_pixel(img, i, j) = 0;
     }
   }
@@ -222,7 +205,6 @@ void image_fill(struct image *img)
   {
     for(int i = 0; i < img->w; ++i)
     {
-      //img->data[img->w * j + i] = ++k;
       image_pixel(img, i, j) = ++k;
     }
   }
@@ -234,7 +216,7 @@ void image_print(struct image *img)
   {
     for(int i = 0; i < img->w; ++i)
     {
-      int val = image_pixel(img, i, j); //img->data[img->w * j + i];
+      int val = image_pixel(img, i, j);
       printf("| %2d ", val);
     }
     printf("|\n");
@@ -247,8 +229,7 @@ void image_prety_print(struct image *img)
   {
     for(int i = 0; i < img->w; ++i)
     {
-      int val = image_pixel(img, i, j); //img->data[img->w * j + i];
-      //printf("%d",val!=0); //if val == 0 (black) print 0 else print 1 (white)
+      int val = image_pixel(img, i, j);
       if(val!=0)
         printf("1");
       else
@@ -337,17 +318,8 @@ int main(int argc, char *argv[])
   SDL_Surface *i = to_sdl_image(rect);
   display_image(i);
 
-/*
-  for(int y = 0; y < img->h; ++y)
-  {
-    printf("Line %3d, is: %d\n", y, is_line_blank(img, y));
-  }
-
-  for(int x = 0; x < img->w; ++x)
-  {
-    printf("Column %3d, is: %d\n", x, is_column_blank(img, x));
-  }*/
-
+  
+  /* free  */
   SDL_FreeSurface(sdlimg);
   image_free(img);
 
