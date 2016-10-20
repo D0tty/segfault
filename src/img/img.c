@@ -109,38 +109,38 @@ SDL_Surface* load_image(char *path)
   return img;
 }
 
-SDL_Surface* tograyscale(SDL_Surface* img)                                      
-{                                                                               
-  for ( int x = 0; x < img->w; ++x )                                            
-  {                                                                             
-    for ( int y = 0; y < img->h; ++y )                                          
-    {                                                                           
-      Uint8 R, G, B;                                                            
-      SDL_GetRGB(getpixel(img, x, y), img->format, &R, &G, &B);                 
-      float luminance = 0.3 * R + 0.59 * G + 0.11 * B;                          
-      R = G = B = luminance;                                                    
-      Uint32 pix = SDL_MapRGB(img->format, R, G, B);                            
-      putpixel(img,x,y,pix);                                                    
-    }                                                                           
-  }                                                                             
-  return img;                                                                   
-}                                                                               
+SDL_Surface* tograyscale(SDL_Surface* img)
+{
+  for ( int x = 0; x < img->w; ++x )
+  {
+    for ( int y = 0; y < img->h; ++y )
+    {
+      Uint8 R, G, B;
+      SDL_GetRGB(getpixel(img, x, y), img->format, &R, &G, &B);
+      float luminance = 0.3 * R + 0.59 * G + 0.11 * B;
+      R = G = B = luminance;
+      Uint32 pix = SDL_MapRGB(img->format, R, G, B);
+      putpixel(img,x,y,pix);
+    }
+  }
+  return img;
+}
 
-SDL_Surface* tobinary(SDL_Surface* img)                                         
-{                                                                               
-  for ( int x = 0; x < img->w; ++x )                                            
-  {                                                                             
-    for ( int y = 0; y < img->h; ++y )                                          
-    {                                                                           
-      Uint8 R, G, B;                                                            
-      SDL_GetRGB(getpixel(img, x, y), img->format, &R, &G, &B);                 
-      R = G = B = (R+G+B)/3 < 60 ? 0 : 255;                                     
-      Uint32 pix = SDL_MapRGB(img->format, R, G, B);                            
-      putpixel(img,x,y,pix);                                                    
-    }                                                                           
-  }                                                                             
-  return img;                                                                   
-}                                                                               
+SDL_Surface* tobinary(SDL_Surface* img)
+{
+  for ( int x = 0; x < img->w; ++x )
+  {
+    for ( int y = 0; y < img->h; ++y )
+    {
+      Uint8 R, G, B;
+      SDL_GetRGB(getpixel(img, x, y), img->format, &R, &G, &B);
+      R = G = B = (R+G+B)/3 < 60 ? 0 : 255;
+      Uint32 pix = SDL_MapRGB(img->format, R, G, B);
+      putpixel(img,x,y,pix);
+    }
+  }
+  return img;
+}
 
 SDL_Surface* display_image(SDL_Surface *img)
 {                                  
@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
   image_prety_print(img);
 
   /*Test de la fonction de découpage en rectangles*/
-  
+
   printf("\n");
   printf("rectangle autour du texte de coucou_test.jpg");
   printf("\n");
