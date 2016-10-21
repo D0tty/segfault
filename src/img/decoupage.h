@@ -15,7 +15,11 @@ struct paragraph
 
 struct line* line_create(struct image *chr);
 
+void line_free(struct line *ln);
+
 struct paragraph* paragraph_create(struct line *ln);
+
+void paragraph_free(struct paragraph *pa);
 
 struct line* ligne_to_line(struct image *img, struct line *ligne);
 
