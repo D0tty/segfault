@@ -22,3 +22,5 @@ struct line* ligne_to_line(struct image *img, struct line *ligne);
 struct image* first_char_in_line(struct image *img);
 
 int next_black_line(struct image *img, int y);
+
+#endif

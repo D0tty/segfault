@@ -1,11 +1,11 @@
-#include <stdio.h>                                                              
-#include <stdlib.h>                                                             
-#include <assert.h>                                                             
-#include <err.h>                                                                
-#include <string.h>                                                             
-#include <SDL.h>                                                                
-#include <SDL/SDL.h>                                                            
-#include <SDL/SDL_image.h>                                                
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <err.h>
+#include <string.h>
+#include <SDL.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #include "img.h"
 #include "decoupage.h"
 
@@ -34,7 +34,7 @@ struct paragraph* paragraph_create(struct line *ln)
 //A refaire récursivement demain (sale sale faut pas regarder)
 
 /*struct paragraph* decoupage(struct image *img)
-{ 
+{
   img = image_get_paragraph(img);
   struct paragraph *prgph;
   int y1 = 0, y2 = 0, cp = 0, w = img->w, h = img->h;
@@ -51,21 +51,21 @@ struct paragraph* paragraph_create(struct line *ln)
     {
       ++y2
     }
-  }  
+  }
 }*/
 
 struct line* ligne_to_line(struct image *img, struct line *ligne)
 {
-  //Verifier si un image_get_rect(img, 0, 0, 0, 0) est NULL ou a 
+  //Verifier si un image_get_rect(img, 0, 0, 0, 0) est NULL ou a
   //Une hauteur et une largeur de 0 et adapter en fonction
   if(img->w == 0)
   {
     return NULL;
   }
   else
-  { 
+  {
   struct image *chr = first_char_in_line(img);
-  
+
   img = image_get_rect(img, chr->w, 0, img->w - 1, img->h - 1);
   img = image_get_paragraph(img);
   /*IMPLEMENTER FONCTION IS_ESPACE => si blanc >= largeur char => espace*/
@@ -88,7 +88,7 @@ struct image* first_char_in_line(struct image *img)
 //va surement disparaitre demain avec le passage a la recursion
 int next_black_line(struct image *img, int y)
 {
-  int h = img->h;                                            
+  int h = img->h;
   while(y < h && is_line_blank(img, y))
   {
     ++y;
