@@ -19,7 +19,8 @@ network* create_network(size_t* sizes, size_t nb_layers)
   nt->nb_layers = nb_layers;
   nt->sizes = sizes;
 
-  // The first layer doesn't have biases.
+  // Beware! The first layer doesn't have biases. As such, the biases sizes
+  // at index 1 in the sizes list.
   size_t biases_length = nb_layers - 1;
   double** biases = malloc(biases_length * sizeof (double*));
   for (size_t i = 0; i < biases_length; i++)
@@ -123,6 +124,10 @@ double sigmoid_prime(double z)
   return sigmoid(z) * (1. - sigmoid(z));
 }
 
+// Execute one neuron layer on input.
+// This is useful for the backpropagation algorithm, where we want to store the
+// activations at every layer of the network in order to estimate the effect
+// of the backpropagation.
 void feedforward_step(network* nt, double* input, size_t layer_idx,
                       double* activations)
 {
@@ -138,10 +143,13 @@ void feedforward_step(network* nt, double* input, size_t layer_idx,
     {
       activation += weights[j * curr_size + k] * input[k];
     }
+    // ∑(Weight_k * Input_k) + Bias
     activations[j] = activation;
   }
 }
 
+// Execute the neural network for a given `input` of size `nt->sizes[0]`.
+// Output goes into `activations`, which should have size `nt->sizes[-1]`.
 void feedforward(network* nt, double* input, double* activations)
 {
   double* curr_activations = input;
@@ -154,13 +162,21 @@ void feedforward(network* nt, double* input, double* activations)
     }
     else
     {
+      // @TODO: Potential optimization, allocate only one array of size
+      // `max(nt->sizes)`.
       next_activations = malloc(nt->sizes[i + 1] * sizeof (double));
     }
     feedforward_step(nt, curr_activations, i, next_activations);
+    // `feedforward_step` doesn't apply `sigmoid` directly because we sometimes
+    // want to apply `sigmoid_prime` instead (see `backprop`).
+    // @TODO: Potential optimization, create two different `feedforward_step`,
+    // one that only applies `sigmoid` with one output, and one that applies
+    // `sigmoid` and `sigmoid_prime` in the same loop, with two outputs.
+    // Note: this would remove the need for `vector_apply`.
     vector_apply(next_activations, &sigmoid, next_activations, nt->sizes[i + 1]);
 
     if (i > 0) {
-      // We don't want to free the input, it doesn't belong to us.
+      // We don't want to free the first input, it doesn't belong to us.
       free(curr_activations);
     }
 
@@ -168,6 +184,7 @@ void feedforward(network* nt, double* input, double* activations)
   }
 }
 
+// Create gradients with empty weights and biases.
 gradients* create_gradients(network* nt)
 {
   size_t nb_inter = nt->nb_layers - 1;
@@ -193,6 +210,7 @@ gradients* create_gradients(network* nt)
   return grad;
 }
 
+// Free the provided gradients.
 void free_gradients(network* nt, gradients* grad)
 {
   size_t nb_inter = nt->nb_layers - 1;
@@ -206,6 +224,7 @@ void free_gradients(network* nt, gradients* grad)
   free(grad);
 }
 
+// Print the gradients.
 void print_grad(network* nt, gradients* grad)
 {
   printf("biases: [\n");
@@ -226,16 +245,21 @@ void print_grad(network* nt, gradients* grad)
   printf("]\n\n");
 }
 
+// Backpropagates a change to the final output through all layers in order to
+// figure out a gradient that minimizes the cost for a given training data.
 void backprop(network* nt, training_datum* td, gradients* grad)
 {
   size_t nb_layers = nt->nb_layers;
   size_t nb_inter = nt->nb_layers - 1;
+
+  // Compute the list of all activations for every layer, as well as the list
+  // of activations through sigmoid prime (which tells us in which direction to
+  // go to increase/decrease the activation).
   double** activations_list = malloc(nb_layers * sizeof (double*));
   double** activations_prime_list = malloc(nb_inter * sizeof (double*));
   activations_list[0] = td->input;
   for (size_t i = 0; i < nb_inter; ++i)
   {
-    // @TODO: Free the activations allocations
     size_t activations_length = nt->sizes[i + 1];
     size_t activations_size = activations_length * sizeof (double);
     double* activations = malloc(activations_size);
@@ -253,8 +277,14 @@ void backprop(network* nt, training_datum* td, gradients* grad)
   memcpy(delta, activations_list[nb_layers - 1], layer_size * sizeof (double));
   vector_substract(delta, delta, td->output, layer_size); // Cost derivative
   vector_multiply(delta, delta, activations_prime_list[nb_inter - 1], layer_size);
-  // Our matrixes are in the wrong direction!
   dot_ti(grad->weights[nb_inter - 1], delta, activations_list[nb_layers - 2], layer_size, 1, nt->sizes[nb_layers - 2]);
+  // Δ = (acti[-1] - output) * acti'[-1]
+  // ∇biases[-1] = Δ
+  // ∇weights[-1] = dot(Δ, transpose(acti[-2]))
+  // In our case, we dot(transpose(Δ), acti[-2]) since our matrices are already
+  // transposed in memory.
+  // Which is strange, since we don't need to do it in the loop below.
+  // @TODO: Investigate.
 
   for (size_t i = 2; i < nb_layers; ++i)
   {
@@ -264,10 +294,15 @@ void backprop(network* nt, training_datum* td, gradients* grad)
     vector_multiply(next_delta, next_delta, activations_prime, nt->sizes[nb_inter - i + 1]);
     dot_it(grad->weights[nb_inter - i], next_delta, activations_list[nb_layers - i - 1], nt->sizes[nb_inter - i + 1], 1, nt->sizes[nb_inter - i]);
     delta = next_delta;
+    // Δ = dot(transpose(weights[-i + 1]), Δ) * acti'[-i]
+    // ∇biases[-i] = Δ
+    // ∇weights[-i] = dot(Δ, transpose(acti[-i - 1]))
   }
 
   for (size_t i = 0; i < nb_inter; ++i)
   {
+    // The first activation is the input, which was passed as argument, so
+    // we don't free it since it doesn't belong to us.
     free(activations_list[i + 1]);
     free(activations_prime_list[i]);
   }
@@ -275,6 +310,7 @@ void backprop(network* nt, training_datum* td, gradients* grad)
   free(activations_prime_list);
 }
 
+// Add two gradients.
 void add_gradients(network* nt, gradients* a, gradients* b)
 {
   size_t nb_inter = nt->nb_layers - 1;
@@ -285,28 +321,10 @@ void add_gradients(network* nt, gradients* a, gradients* b)
   }
 }
 
-void print_grad_net(network* nt)
-{
-  printf("biases: [\n");
-  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
-  {
-    printf("  ");
-    print_list(nt->biases[i], nt->sizes[i + 1]);
-    printf(",\n");
-  }
-  printf("]\n");
-  printf("weights: [\n");
-  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
-  {
-    printf("  ");
-    print_list(nt->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
-    printf(",\n");
-  }
-  printf("]\n\n");
-}
-
+// Train the network on the provided training data with the provided learning
+// rate.
 void train(network* nt, training_datum** training_data,
-           size_t training_data_length, double eta)
+           size_t training_data_length, double learning_rate)
 {
   gradients* grad = create_gradients(nt);
 
@@ -319,10 +337,15 @@ void train(network* nt, training_datum** training_data,
     free_gradients(nt, delta);
   }
 
+  // `grad` now contains the changes we need to apply to our network's biases
+  // and weights in order to minimize the cost for our training data.
+
   size_t nb_inter = nt->nb_layers - 1;
-  double batch_factor = -eta / (double)training_data_length;
+  double batch_factor = -learning_rate / (double)training_data_length;
   for (size_t i = 0; i < nb_inter; ++i)
   {
+    // Optimization: could use `vector_scalar_multiply` and `vector_add` here,
+    // but it would imply two more loops.
     for (size_t j = 0; j < nt->sizes[i + 1]; ++j)
     {
       nt->biases[i][j] += batch_factor * grad->biases[i][j];
@@ -336,7 +359,7 @@ void train(network* nt, training_datum** training_data,
   free_gradients(nt, grad);
 }
 
-// Stochastic gradient descent
+// Stochastic gradient descent.
 void sgd(network* nt, training_datum** training_data,
          size_t training_data_length, unsigned epochs, size_t mini_batch_size,
          double eta)
