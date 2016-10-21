@@ -4,16 +4,16 @@
 
 void print_list(double* list, size_t length)
 {
-  warnx("[");
+  printf("[");
   for (size_t i = 0; i < length; ++i)
   {
-    warnx("%f", list[i]);
+    printf("%lf", list[i]);
     if (i != length - 1)
     {
-      warnx(", ");
+      printf(", ");
     }
   }
-  warnx("]");
+  printf("]");
 }
 
 void print_vector(double* vector, size_t height, size_t width)

@@ -39,6 +39,8 @@ void backprop(network* nt, training_datum* td, gradients* grad);
 
 gradients* create_gradients(network* nt);
 
+void print_grad_net(network* nt);
+
 void free_gradients(network* nt, gradients* grad);
 
 #endif

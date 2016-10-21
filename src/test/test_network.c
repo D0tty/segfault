@@ -40,11 +40,20 @@ training_datum* create_training_datum(double* input, double* output)
   return td;
 }
 
-void test_network_train()
+void test_network_output(network* nt, double* input)
+{
+  double* activations = malloc(nt->sizes[nt->nb_layers - 1] * sizeof (double));
+  feedforward(nt, input, activations);
+  print_list(input, nt->sizes[0]);
+  printf(": ");
+  print_list(activations, nt->sizes[nt->nb_layers - 1]);
+  printf("\n");
+}
+
+void test_network_sgd()
 {
   size_t sizes[] = { 2, 3, 1 };
 	network* nt = create_network(sizes, 3);
-  gradients* grad = create_gradients(nt);
 
   training_datum* datum1 = create_training_datum(
     (double[]){ 0, 0 },
@@ -64,39 +73,20 @@ void test_network_train()
   );
   training_datum* data[] = { datum1, datum2, datum3, datum4 };
 
-  sgd(nt, data, 4, 30, 4, 1.);
-  // train(nt, data, 2, 3.);
+  sgd(nt, data, 4, 1000, 4, 10.);
 
-  // printf("weights: ");
-  // print_list(grad->weights[0], 2);
-  // printf("\nbiases: ");
-  // print_list(grad->biases[0], 1);
-  // printf("\n");
+  test_network_output(nt, (double[]){ 0, 0 });
+  test_network_output(nt, (double[]){ 1, 0 });
+  test_network_output(nt, (double[]){ 0, 1 });
+  test_network_output(nt, (double[]){ 1, 1 });
 
-  double* activations = malloc(1 * sizeof (double));
-  feedforward(nt, (double[]){ 1, 1 }, activations);
-  printf("1 1:\n");
-  print_list(activations, 1);
-  feedforward(nt, (double[]){ 1, 0 }, activations);
-  printf("1 0:\n");
-  print_list(activations, 1);
-  feedforward(nt, (double[]){ 0, 1 }, activations);
-  printf("0 1:\n");
-  print_list(activations, 1);
-  feedforward(nt, (double[]){ 0, 0 }, activations);
-  printf("0 0:\n");
-  print_list(activations, 1);
-  printf("\n");
-  free(activations);
-
-  free_gradients(nt, grad);
   free_network(nt);
   free(datum1);
   free(datum2);
-  // free(datum3);
-  // free(datum4);
+  free(datum3);
+  free(datum4);
 
-  printf("backprop: ok\n");
+  printf("sgd: ok\n");
 }
 
 void test_network()
@@ -104,5 +94,5 @@ void test_network()
 	srand(time(NULL)); // Randomize the seed.
 
   test_network_feedforward();
-  test_network_train();
+  test_network_sgd();
 }

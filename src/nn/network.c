@@ -111,7 +111,6 @@ void print_network(network* nt, int with_edges)
   printf("}\n");
 }
 
-
 // Our activation function.
 double sigmoid(double z)
 {
@@ -171,15 +170,15 @@ void feedforward(network* nt, double* input, double* activations)
 
 gradients* create_gradients(network* nt)
 {
-  size_t length = nt->nb_layers - 1;
-  double** biases = malloc(length * sizeof (double*));
-  double** weights = malloc(length * sizeof (double*));
-  for (size_t i = 0; i < length; ++i)
+  size_t nb_inter = nt->nb_layers - 1;
+  double** biases = malloc(nb_inter * sizeof (double*));
+  double** weights = malloc(nb_inter * sizeof (double*));
+  for (size_t i = 0; i < nb_inter; ++i)
   {
-    biases[i] = malloc(nt->sizes[i] * sizeof (double));
+    biases[i] = malloc(nt->sizes[i + 1] * sizeof (double));
     weights[i] = malloc(nt->sizes[i] * nt->sizes[i + 1] * sizeof (double));
 
-    for (size_t j = 0; j < nt->sizes[i]; ++j)
+    for (size_t j = 0; j < nt->sizes[i + 1]; ++j)
     {
       biases[i][j] = 0;
     }
@@ -196,8 +195,8 @@ gradients* create_gradients(network* nt)
 
 void free_gradients(network* nt, gradients* grad)
 {
-  size_t length = nt->nb_layers - 1;
-  for (size_t i = 0; i < length; ++i)
+  size_t nb_inter = nt->nb_layers - 1;
+  for (size_t i = 0; i < nb_inter; ++i)
   {
     free(grad->biases[i]);
     free(grad->weights[i]);
@@ -205,6 +204,26 @@ void free_gradients(network* nt, gradients* grad)
   free(grad->biases);
   free(grad->weights);
   free(grad);
+}
+
+void print_grad(network* nt, gradients* grad)
+{
+  printf("biases: [\n");
+  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
+  {
+    printf("  ");
+    print_list(grad->biases[i], nt->sizes[i + 1]);
+    printf(",\n");
+  }
+  printf("]\n");
+  printf("weights: [\n");
+  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
+  {
+    printf("  ");
+    print_list(grad->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
+    printf(",\n");
+  }
+  printf("]\n\n");
 }
 
 void backprop(network* nt, training_datum* td, gradients* grad)
@@ -234,7 +253,8 @@ void backprop(network* nt, training_datum* td, gradients* grad)
   memcpy(delta, activations_list[nb_layers - 1], layer_size * sizeof (double));
   vector_substract(delta, delta, td->output, layer_size); // Cost derivative
   vector_multiply(delta, delta, activations_prime_list[nb_inter - 1], layer_size);
-  dot_it(grad->weights[nb_inter - 1], delta, activations_list[nb_layers - 2], layer_size, 1, nt->sizes[nb_layers - 2]);
+  // Our matrixes are in the wrong direction!
+  dot_ti(grad->weights[nb_inter - 1], delta, activations_list[nb_layers - 2], layer_size, 1, nt->sizes[nb_layers - 2]);
 
   for (size_t i = 2; i < nb_layers; ++i)
   {
@@ -242,8 +262,7 @@ void backprop(network* nt, training_datum* td, gradients* grad)
     double* next_delta = grad->biases[nb_inter - i];
     dot_ti(next_delta, nt->weights[nb_inter - i + 1], delta, nt->sizes[nb_inter - i + 1], nt->sizes[nb_inter - i + 2], 1);
     vector_multiply(next_delta, next_delta, activations_prime, nt->sizes[nb_inter - i + 1]);
-    // Not sure at all about the dimensions here!
-    dot_it(grad->weights[nb_inter - i], next_delta, activations_list[nb_layers - i - 1], nt->sizes[nb_inter - i], 1, nt->sizes[nb_inter - i + 1]);
+    dot_it(grad->weights[nb_inter - i], next_delta, activations_list[nb_layers - i - 1], nt->sizes[nb_inter - i + 1], 1, nt->sizes[nb_inter - i]);
     delta = next_delta;
   }
 
@@ -261,18 +280,18 @@ void add_gradients(network* nt, gradients* a, gradients* b)
   size_t nb_inter = nt->nb_layers - 1;
   for (size_t i = 0; i < nb_inter; ++i)
   {
-    vector_add(a->biases[i], a->biases[i], b->biases[i], nt->sizes[i]);
+    vector_add(a->biases[i], a->biases[i], b->biases[i], nt->sizes[i + 1]);
     vector_add(a->weights[i], a->weights[i], b->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
   }
 }
 
-void print_grad(network* nt, gradients* grad)
+void print_grad_net(network* nt)
 {
   printf("biases: [\n");
   for (size_t i = 0; i < nt->nb_layers - 1; ++i)
   {
     printf("  ");
-    print_list(grad->biases[i], nt->sizes[i + 1]);
+    print_list(nt->biases[i], nt->sizes[i + 1]);
     printf(",\n");
   }
   printf("]\n");
@@ -280,7 +299,7 @@ void print_grad(network* nt, gradients* grad)
   for (size_t i = 0; i < nt->nb_layers - 1; ++i)
   {
     printf("  ");
-    print_list(grad->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
+    print_list(nt->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
     printf(",\n");
   }
   printf("]\n\n");
@@ -295,9 +314,7 @@ void train(network* nt, training_datum** training_data,
   {
     training_datum* td = training_data[i];
     gradients* delta = create_gradients(nt);
-    warnx("p: %p", delta->biases);
     backprop(nt, td, delta);
-    warnx("p: %p", delta->biases);
     add_gradients(nt, grad, delta);
     free_gradients(nt, delta);
   }
@@ -306,7 +323,7 @@ void train(network* nt, training_datum** training_data,
   double batch_factor = -eta / (double)training_data_length;
   for (size_t i = 0; i < nb_inter; ++i)
   {
-    for (size_t j = 0; j < nt->sizes[i]; ++j)
+    for (size_t j = 0; j < nt->sizes[i + 1]; ++j)
     {
       nt->biases[i][j] += batch_factor * grad->biases[i][j];
     }
