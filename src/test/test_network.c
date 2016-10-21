@@ -73,7 +73,7 @@ void test_network_sgd()
   );
   training_datum* data[] = { datum1, datum2, datum3, datum4 };
 
-  sgd(nt, data, 4, 1000, 4, 10.);
+  sgd(nt, data, 4, 100000000, 4, 10.);
 
   test_network_output(nt, (double[]){ 0, 0 });
   test_network_output(nt, (double[]){ 1, 0 });
