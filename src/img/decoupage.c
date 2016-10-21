@@ -18,6 +18,18 @@ struct line* line_create(struct image *chr)
   return ln;
 }
 
+void line_free(struct line *ln)
+{
+  struct line *tmp = ln;
+  while(tmp != NULL)
+  {
+    tmp = ln->next_char;
+    image_free(ln->current_char);
+    free(ln);
+    ln = tmp;
+  }
+}
+
 struct paragraph* paragraph_create(struct line *ln)
 {
   struct paragraph *prgph;
@@ -25,6 +37,18 @@ struct paragraph* paragraph_create(struct line *ln)
   prgph->current_line = ln;
   prgph->next_line = NULL;
   return prgph;
+}
+
+void paragraph_free(struct paragraph *pa)
+{
+  struct paragraph *tmp = pa;
+  while(pa != NULL)
+  {
+    tmp = pa->next_line;
+    line_free(pa->current_line);
+    free(pa);
+    pa = tmp;
+  }
 }
 
 /*POISSON FREE() POISSON FREE()*/
