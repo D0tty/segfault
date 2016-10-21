@@ -7,6 +7,7 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include "img.h"
+#include "decoupage.h"
 
 
 void wait_for_keypressed(void)
@@ -21,7 +22,6 @@ void wait_for_keypressed(void)
      }
   }
 }
-
 
 /* SDL */
 
