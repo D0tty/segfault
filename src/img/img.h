@@ -1,3 +1,6 @@
+#ifndef IMG_H
+#define IMG_H
+
 struct image {
 	int w, h;
 	int *data;
@@ -46,3 +49,5 @@ int is_line_blank(struct image *img, int y);
 int is_column_blank(struct image *img, int x);
 
 struct image* image_get_paragraph(struct image *img);
+
+#endif
