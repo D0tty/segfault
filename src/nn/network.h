@@ -27,13 +27,13 @@ void print_network(network* nt, int with_edges);
 void feedforward(network* nt, double* input, double* activations);
 
 double sigmoid(double z);
-//
-// void train(network* nt, training_datum** training_data,
-//            size_t training_data_length, double eta);
-//
-// void sgd(network* nt, training_datum** training_data,
-//          size_t training_data_length, unsigned epochs, size_t mini_batch_size,
-//          double eta);
+
+void train(network* nt, training_datum** training_data,
+           size_t training_data_length, double eta);
+
+void sgd(network* nt, training_datum** training_data,
+         size_t training_data_length, unsigned epochs, size_t mini_batch_size,
+         double eta);
 
 void backprop(network* nt, training_datum* td, gradients* grad);
 

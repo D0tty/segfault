@@ -1,18 +1,19 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <err.h>
 
 void print_list(double* list, size_t length)
 {
-  printf("[");
+  warnx("[");
   for (size_t i = 0; i < length; ++i)
   {
-    printf("%f", list[i]);
+    warnx("%f", list[i]);
     if (i != length - 1)
     {
-      printf(", ");
+      warnx(", ");
     }
   }
-  printf("]");
+  warnx("]");
 }
 
 void print_vector(double* vector, size_t height, size_t width)

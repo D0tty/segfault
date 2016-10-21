@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <err.h>
 #include "../util/gaussrand.h"
 #include "../util/vector.h"
 #include "../util/debug.h"
+#include "../util/shuffle.h"
+#include "../util/misc.h"
 #include "network.h"
 
 // `sizes` is a list containing the respective sizes of the neuron layers of our
@@ -175,6 +178,15 @@ gradients* create_gradients(network* nt)
   {
     biases[i] = malloc(nt->sizes[i] * sizeof (double));
     weights[i] = malloc(nt->sizes[i] * nt->sizes[i + 1] * sizeof (double));
+
+    for (size_t j = 0; j < nt->sizes[i]; ++j)
+    {
+      biases[i][j] = 0;
+    }
+    for (size_t j = 0; j < nt->sizes[i] * nt->sizes[i + 1]; ++j)
+    {
+      weights[i][j] = 0;
+    }
   }
   gradients* grad = malloc(sizeof (gradients));
   grad->biases = biases;
@@ -192,6 +204,7 @@ void free_gradients(network* nt, gradients* grad)
   }
   free(grad->biases);
   free(grad->weights);
+  free(grad);
 }
 
 void backprop(network* nt, training_datum* td, gradients* grad)
@@ -221,7 +234,7 @@ void backprop(network* nt, training_datum* td, gradients* grad)
   memcpy(delta, activations_list[nb_layers - 1], layer_size * sizeof (double));
   vector_substract(delta, delta, td->output, layer_size); // Cost derivative
   vector_multiply(delta, delta, activations_prime_list[nb_inter - 1], layer_size);
-  dot_it(grad->weights[nb_inter - 1], delta, activations_list[nb_layers - 2], layer_size, 1, layer_size);
+  dot_it(grad->weights[nb_inter - 1], delta, activations_list[nb_layers - 2], layer_size, 1, nt->sizes[nb_layers - 2]);
 
   for (size_t i = 2; i < nb_layers; ++i)
   {
@@ -233,60 +246,92 @@ void backprop(network* nt, training_datum* td, gradients* grad)
     dot_it(grad->weights[nb_inter - i], next_delta, activations_list[nb_layers - i - 1], nt->sizes[nb_inter - i], 1, nt->sizes[nb_inter - i + 1]);
     delta = next_delta;
   }
+
+  for (size_t i = 0; i < nb_inter; ++i)
+  {
+    free(activations_list[i + 1]);
+    free(activations_prime_list[i]);
+  }
+  free(activations_list);
+  free(activations_prime_list);
 }
 
-// void add_gradients(network* nt, gradients* a, gradients* b)
-// {
-//   size_t length = nt->nb_layers - 1;
-//   for (size_t i = 0; i < bias_weight_size; ++i)
-//   {
-//     vector_add(a->biases[i], a->biases[i], b->biases[i], nt->sizes[i]);
-//     vector_add(a->weights[i], a->weights[i], b->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
-//   }
-// }
-//
-// void train(network* nt, training_datum** training_data,
-//            size_t training_data_length, double eta)
-// {
-//   gradients* grad = create_gradients(nt);
-//
-//   for (size_t i = 0; i < training_data_length; ++i)
-//   {
-//     training_datum* td = training_data[i];
-//     gradients* delta = backprop(nt, td);
-//     add_gradients(grad, delta);
-//     free_gradients(delta);
-//   }
-//
-//   double batch_factor = -eta / (double)training_data_length;
-//   for (size_t i = 0; i < bias_weight_size; ++i)
-//   {
-//     for (size_t j = 0; j < nt->sizes[i]; ++j)
-//     {
-//       nt->biases[i][j] += batch_factor * grad->biases[i][j];
-//     }
-//     for (size_t j = 0; j < nt->sizes[i] * nt->sizes[i + 1]; ++j)
-//     {
-//       nt->weights[i][j] += batch_factor * grad->weights[i][j];
-//     }
-//   }
-//
-//   free_gradients(grad);
-// }
-//
-// // Stochastic gradient descent
-// void sgd(network* nt, training_datum** training_data,
-//          size_t training_data_length, unsigned epochs, size_t mini_batch_size,
-//          double eta)
-// {
-//   for (size_t epoch = 0; epoch < epochs; epoch++)
-//   {
-//     training_datum** td = shuffle(training_data, training_data_length,
-//                                   sizeof (training_datum*));
-//     for (size_t i = 0; i < training_data_length; i += mini_batch_size)
-//     {
-//       train(nt, training_data + i,
-//             min(mini_batch_size, training_data_length - i), eta);
-//     }
-//   }
-// }
+void add_gradients(network* nt, gradients* a, gradients* b)
+{
+  size_t nb_inter = nt->nb_layers - 1;
+  for (size_t i = 0; i < nb_inter; ++i)
+  {
+    vector_add(a->biases[i], a->biases[i], b->biases[i], nt->sizes[i]);
+    vector_add(a->weights[i], a->weights[i], b->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
+  }
+}
+
+void print_grad(network* nt, gradients* grad)
+{
+  printf("biases: [\n");
+  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
+  {
+    printf("  ");
+    print_list(grad->biases[i], nt->sizes[i + 1]);
+    printf(",\n");
+  }
+  printf("]\n");
+  printf("weights: [\n");
+  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
+  {
+    printf("  ");
+    print_list(grad->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
+    printf(",\n");
+  }
+  printf("]\n\n");
+}
+
+void train(network* nt, training_datum** training_data,
+           size_t training_data_length, double eta)
+{
+  gradients* grad = create_gradients(nt);
+
+  for (size_t i = 0; i < training_data_length; ++i)
+  {
+    training_datum* td = training_data[i];
+    gradients* delta = create_gradients(nt);
+    warnx("p: %p", delta->biases);
+    backprop(nt, td, delta);
+    warnx("p: %p", delta->biases);
+    add_gradients(nt, grad, delta);
+    free_gradients(nt, delta);
+  }
+
+  size_t nb_inter = nt->nb_layers - 1;
+  double batch_factor = -eta / (double)training_data_length;
+  for (size_t i = 0; i < nb_inter; ++i)
+  {
+    for (size_t j = 0; j < nt->sizes[i]; ++j)
+    {
+      nt->biases[i][j] += batch_factor * grad->biases[i][j];
+    }
+    for (size_t j = 0; j < nt->sizes[i] * nt->sizes[i + 1]; ++j)
+    {
+      nt->weights[i][j] += batch_factor * grad->weights[i][j];
+    }
+  }
+
+  free_gradients(nt, grad);
+}
+
+// Stochastic gradient descent
+void sgd(network* nt, training_datum** training_data,
+         size_t training_data_length, unsigned epochs, size_t mini_batch_size,
+         double eta)
+{
+  for (size_t epoch = 0; epoch < epochs; epoch++)
+  {
+    training_datum** td = malloc(training_data_length * sizeof (training_datum*));
+    shuffle(td, training_data, training_data_length, sizeof (training_datum*));
+    for (size_t i = 0; i < training_data_length; i += mini_batch_size)
+    {
+      train(nt, td + i, MIN(mini_batch_size, training_data_length - i), eta);
+    }
+    free(td);
+  }
+}

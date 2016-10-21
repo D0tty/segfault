@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <err.h>
 
 // Element-wise vector addition.
 void vector_add(double* dst, double*a, double* b, size_t length)
@@ -70,7 +71,6 @@ void dot_it(double* dst, double* a, double* b, size_t h_a, size_t w_a_h_b, size_
     }
   }
 }
-
 
 // Dot product between vectors (transposed) . (identity).
 void dot_ti(double* dst, double* a, double* b, size_t h_a, size_t w_a_h_b, size_t w_b)

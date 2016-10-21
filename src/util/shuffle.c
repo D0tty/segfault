@@ -3,19 +3,17 @@
 #include <string.h>
 
 // Fisher-Yates shuffle
-void* shuffle(void* source, size_t length, size_t size)
+void shuffle(void* dst, void* src, size_t length, size_t size)
 {
-  void* output = malloc(length * size);
-  char* source_char = source;
-  char* output_char = output;
+  char* src_char = src;
+  char* dst_char = dst;
   for (size_t i = 0; i < length; ++i)
   {
     size_t j = rand() % (i + 1); // Random number in the range [0, i + 1]
     if (j != i)
     {
-      memcpy(output_char + (i * size), output_char + (j * size), size);
+      memcpy(dst_char + (i * size), dst_char + (j * size), size);
     }
-    memcpy(output_char + (j * size), source_char + (i * size), size);
+    memcpy(dst_char + (j * size), src_char + (i * size), size);
   }
-  return output;
 }
