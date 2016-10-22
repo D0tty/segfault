@@ -8,7 +8,6 @@
 #include "img.h"
 #include "decoupage.h"
 
-
 void wait_for_keypressed(void)
 {
   SDL_Event             event;
@@ -240,8 +239,7 @@ void image_prety_print(struct image *img)
 
 struct image* image_get_from_SDL(SDL_Surface* sdlimg)
 {
-  struct image *img;
-  img = image_create(sdlimg->w, sdlimg->h);
+  struct image *img = image_create(sdlimg->w, sdlimg->h);
   for(int j = 0; j < img->h; ++j)
   {
     for(int i = 0; i < img->w; ++i)
@@ -332,17 +330,21 @@ int main(int argc, char *argv[])
 
 	SDL_Surface *s = display_image(sdlimg);
 
-  img = image_get_paragraph(img);  
-  
+  img = image_get_paragraph(img);
+
 	sdlimg = to_sdl_image(img);
 
 	SDL_Surface *v = display_image(sdlimg);
+
+  struct line *ln = line_create(img);
+  line_free(ln);
 
   /* free  */
   SDL_FreeSurface(sdlimg);
   SDL_FreeSurface(s);
   SDL_FreeSurface(v);
-  image_free(img);
+  // if you try to free img after free ln which contains img in segfaults
+  //image_free(img);
   SDL_Quit();
 
   return 0;

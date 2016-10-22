@@ -2,26 +2,27 @@
 
 CC=clang
 
-CPPFLAGS= `pkg-config --cflags sdl`
+CPPFLAGS=
 CFLAGS= -Wall -Wextra -Werror -std=c99 -ggdb
 LDFLAGS=
-LDLIBS= `pkg-config --libs sdl` -lSDL_image
+LDLIBS= -lSDL -lSDL_image
 
-SRC= img.c
+SRC= img.c decoupage.c
 OBJ= ${SRC:.c=.o}
-PGR= ${SRC:.c=}
+DEP= ${SRC:.c=.d}
+BIN= ${SRC:.c=}
 
 all: img
-	make proper
+	make pro
 
-img: img
+-include ${DEP}
 
-main: ${OBJ}
+img: ${OBJ}
 
 proper pro:
-	rm -f *~ *.o *.d
+	rm -f  ${OBJ} ${DEP}
 
-clean cl: pro
-	rm -f ${PGR}
+clean cl: proper
+	rm -f *~ ${BIN}
 
 # END
