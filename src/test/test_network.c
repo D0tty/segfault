@@ -52,7 +52,7 @@ void test_network_output(network* nt, double* input)
 
 void test_network_sgd()
 {
-  size_t sizes[] = { 2, 3, 1 };
+  size_t sizes[] = { 2, 2, 1 };
 	network* nt = create_network(sizes, 3);
 
   training_datum* datum1 = create_training_datum(
