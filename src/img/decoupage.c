@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <err.h>
 #include <string.h>
-#include <SDL.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include "img.h"
@@ -106,7 +105,7 @@ struct image* first_char_in_line(struct image *img)
   {
     ++x;
   }
-  return image_get_rect(img, 0, 0, x, img->y - 1);
+  return image_get_rect(img, 0, 0, x, img->h - 1);
 }
 
 //va surement disparaitre demain avec le passage a la recursion

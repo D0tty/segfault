@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <err.h>
 #include <string.h>
-#include <SDL.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include "img.h"
@@ -331,17 +330,20 @@ int main(int argc, char *argv[])
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
 
-	display_image(sdlimg);
+	SDL_Surface *s = display_image(sdlimg);
 
   img = image_get_paragraph(img);  
   
 	sdlimg = to_sdl_image(img);
 
-	display_image(sdlimg);
+	SDL_Surface *v = display_image(sdlimg);
 
   /* free  */
   SDL_FreeSurface(sdlimg);
+  SDL_FreeSurface(s);
+  SDL_FreeSurface(v);
   image_free(img);
+  SDL_Quit();
 
   return 0;
 }
