@@ -43,4 +43,6 @@ void print_grad_net(network* nt);
 
 void free_gradients(network* nt, gradients* grad);
 
+void save_network(network* nt, char* file);
+
 #endif
