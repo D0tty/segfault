@@ -399,13 +399,11 @@ void save_network(network* nt, char* file)
   // at index 1 in the sizes list.
   size_t biases_length = nt->nb_layers - 1;
   printf("biases_length: %lu\n", biases_length);
-  fprintf(f, "%lu\n", biases_length);
   //double** biases = malloc(biases_length * sizeof (double*));
   for (size_t i = 0; i < biases_length; i++)
   {
     size_t size = nt->sizes[i + 1];
     printf("size: %lu\n",size);
-    fprintf(f, "%lu\n",size);
     //biases[i] = malloc(size * sizeof (double));
     for (size_t j = 0; j < size; j++)
     {
@@ -419,16 +417,13 @@ void save_network(network* nt, char* file)
   // neuron in the (i+1)th layer.
   size_t weights_length = nt->nb_layers - 1;
   printf("weights_length: %lu\n", weights_length);
-  fprintf(f, "%lu\n", weights_length);
   //double** weights = malloc(weights_length * sizeof (double*));
   for (size_t i = 0; i < weights_length; i++)
   {
     size_t next_size = nt->sizes[i + 1]; // Next layer size
     printf("next_size: %lu\n", next_size);
-    fprintf(f, "%lu\n", next_size);
     size_t curr_size = nt->sizes[i]; // Current layer size
     printf("curr_size: %lu\n", curr_size);
-    fprintf(f, "%lu\n", curr_size);
     //weights[i] = malloc(curr_size * next_size * sizeof (double));
     // Why use next_layer index before curr_layer?
     // See http://neuralnetworksanddeeplearning.com/chap1.html#mjx-eqn-22
@@ -446,4 +441,77 @@ void save_network(network* nt, char* file)
   //nt->weights = weights;
   printf("END\n");
   fclose(f);
+}
+
+network* load_network(char *file)
+{
+  char *f_line = NULL;
+  size_t f_line_len = 0;
+  size_t f_size_t_val = 0;
+
+  FILE *f = fopen(file, "r");
+  if (f == NULL)
+  {
+    printf("Error opening file!\n");
+    exit(1);
+  }
+
+  network *nt;
+  nt = malloc(sizeof (network));
+
+  //get nb_layers
+  getline(&f_line, &f_line_len, f);
+  sscanf(f_line, "%zu", &f_size_t_val);
+  nt->nb_layers = f_size_t_val;
+  size_t nb_layers = nt->nb_layers;
+
+  nt->sizes = malloc( nt->nb_layers * sizeof(size_t) );
+  for( size_t i = 0; i < nb_layers; ++i)
+  {
+    getline(&f_line, &f_line_len, f);
+    sscanf(f_line, "%zu", &f_size_t_val);
+    nt->sizes[i] = f_size_t_val;
+  }
+
+  // Beware! The first layer doesn't have biases. As such, the biases sizes
+  // at index 1 in the sizes list.
+  size_t biases_length = nb_layers - 1;
+  double** biases = malloc(biases_length * sizeof (double*));
+  for (size_t i = 0; i < biases_length; i++)
+  {
+    size_t size = nt->sizes[i + 1];
+    biases[i] = malloc(size * sizeof (double));
+    for (size_t j = 0; j < size; j++)
+    {
+      //biases[i][j] = gaussrand();
+      getline(&f_line, &f_line_len, f);
+      biases[i][j] = strtod(f_line,NULL);
+    }
+  }
+  nt->biases = biases;
+
+  // Wijk is the weight between the kth neuron in the ith layer and the jth
+  // neuron in the (i+1)th layer.
+  size_t weights_length = nb_layers - 1;
+  double** weights = malloc(weights_length * sizeof (double*));
+  for (size_t i = 0; i < weights_length; i++)
+  {
+    size_t curr_size = nt->sizes[i]; // Current layer size
+    size_t next_size = nt->sizes[i + 1]; // Next layer size
+    weights[i] = malloc(curr_size * next_size * sizeof (double));
+    // Why use next_layer index before curr_layer?
+    // See http://neuralnetworksanddeeplearning.com/chap1.html#mjx-eqn-22
+    for (size_t j = 0; j < next_size; j++)
+    {
+      for (size_t k = 0; k < curr_size; k++)
+      {
+        //weights[i][j * curr_size + k] = gaussrand();
+        getline(&f_line, &f_line_len, f);
+        weights[i][j * curr_size + k] = strtod(f_line,NULL);
+      }
+    }
+  }
+  nt->weights = weights;
+
+  return nt;
 }

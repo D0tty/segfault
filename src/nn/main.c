@@ -17,6 +17,10 @@ int main(/*int argc, char *argv[]*/)
 
   save_network(nt,"save.txt");
   free_network(nt);
+
+  nt = load_network("save.txt");
+  save_network(nt,"save_after_laod.txt");
+  free_network(nt);
   
   return 0;
 }
