@@ -5,6 +5,7 @@
 #include <assert.h>
 #include "../nn/network.h"
 #include "../util/debug.h"
+#include "../util/timer.h"
 
 // Somewhat equal.
 int seq(double a, double b)
@@ -84,7 +85,7 @@ void test_network_sgd()
 
   char *saveto = "xor_trained.txt";
   save_network(nt, saveto);
-  
+
   printf("Network saved to: %s", saveto);
 
   free_network(nt);
@@ -96,10 +97,53 @@ void test_network_sgd()
   printf("sgd: ok\n");
 }
 
+void perf_xor(unsigned epochs)
+{
+  size_t sizes[] = { 2, 2, 1 };
+
+  training_datum* datum1 = create_training_datum(
+    (double[]){ 0, 0 },
+    (double[]){ 0 }
+  );
+  training_datum* datum2 = create_training_datum(
+    (double[]){ 1, 0 },
+    (double[]){ 1 }
+  );
+  training_datum* datum3 = create_training_datum(
+    (double[]){ 0, 1 },
+    (double[]){ 1 }
+  );
+  training_datum* datum4 = create_training_datum(
+    (double[]){ 1, 1 },
+    (double[]){ 0 }
+  );
+  training_datum* data[] = { datum1, datum2, datum3, datum4 };
+
+  timestamp_t start = get_timestamp();
+  for (size_t i = 0; i < epochs; ++i)
+  {
+    network* nt = create_network(sizes, 3);
+    sgd(nt, data, 4, 10000, 4, 10.);
+    free_network(nt);
+  }
+
+  timestamp_t end = get_timestamp();
+  double avg = (end - start) / (double)epochs;
+  printf("perf: avg %ums\n", (unsigned)(avg / 1000));
+
+  free(datum1);
+  free(datum2);
+  free(datum3);
+  free(datum4);
+
+  printf("perf: ok\n");
+}
+
 void test_network()
 {
-	srand(time(NULL)); // Randomize the seed.
+	srand(42); // Randomize the seed.
 
-  test_network_feedforward();
-  test_network_sgd();
+  perf_xor(100);
+  // test_network_feedforward();
+  // test_network_sgd();
 }
