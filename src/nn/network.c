@@ -501,5 +501,7 @@ network* load_network(char *file)
   }
   nt->weights = weights;
 
+  fclose(f);
+
   return nt;
 }
