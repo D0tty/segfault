@@ -73,12 +73,19 @@ void test_network_sgd()
   );
   training_datum* data[] = { datum1, datum2, datum3, datum4 };
 
-  sgd(nt, data, 4, 100000000, 4, 10.);
+  size_t iter = 500000;
+
+  sgd(nt, data, 4, iter, 4, 10.);
 
   test_network_output(nt, (double[]){ 0, 0 });
   test_network_output(nt, (double[]){ 1, 0 });
   test_network_output(nt, (double[]){ 0, 1 });
   test_network_output(nt, (double[]){ 1, 1 });
+
+  char *saveto = "xor_trained.txt";
+  save_network(nt, saveto);
+  
+  printf("Network saved to: %s", saveto);
 
   free_network(nt);
   free(datum1);

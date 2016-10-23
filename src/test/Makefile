@@ -9,7 +9,7 @@ SRC= ../util/vector.c ../util/gaussrand.c ../util/shuffle.c ../nn/network.c ../u
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
 
-all:
+all: test
 
 -include ${DEP}
 
