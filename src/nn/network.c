@@ -384,30 +384,24 @@ void save_network(network* nt, char* file)
     printf("Error opening file!\n");
     exit(1);
   }
-  printf("BEGIN\n");
   //nt->nb_layers = nb_layers;
-  printf("nb_layer: %lu\n", nt->nb_layers);
   fprintf(f, "%lu\n", nt->nb_layers);
   //nt->sizes = sizes;
   for( size_t i = 0; i < nt->nb_layers; ++i)
   {
-    printf("sizes[%lu] = %lu\n", i, nt->sizes[i]);
     fprintf(f, "%lu\n", nt->sizes[i]);
   }
 
   // Beware! The first layer doesn't have biases. As such, the biases sizes
   // at index 1 in the sizes list.
   size_t biases_length = nt->nb_layers - 1;
-  printf("biases_length: %lu\n", biases_length);
   //double** biases = malloc(biases_length * sizeof (double*));
   for (size_t i = 0; i < biases_length; i++)
   {
     size_t size = nt->sizes[i + 1];
-    printf("size: %lu\n",size);
     //biases[i] = malloc(size * sizeof (double));
     for (size_t j = 0; j < size; j++)
     {
-      printf("biases[%lu][%lu] = %f\n", i, j, nt->biases[i][j]);
       fprintf(f, "%f\n", nt->biases[i][j]);
     }
   }
@@ -416,14 +410,11 @@ void save_network(network* nt, char* file)
   // Wijk is the weight between the kth neuron in the ith layer and the jth
   // neuron in the (i+1)th layer.
   size_t weights_length = nt->nb_layers - 1;
-  printf("weights_length: %lu\n", weights_length);
   //double** weights = malloc(weights_length * sizeof (double*));
   for (size_t i = 0; i < weights_length; i++)
   {
     size_t next_size = nt->sizes[i + 1]; // Next layer size
-    printf("next_size: %lu\n", next_size);
     size_t curr_size = nt->sizes[i]; // Current layer size
-    printf("curr_size: %lu\n", curr_size);
     //weights[i] = malloc(curr_size * next_size * sizeof (double));
     // Why use next_layer index before curr_layer?
     // See http://neuralnetworksanddeeplearning.com/chap1.html#mjx-eqn-22
@@ -432,14 +423,11 @@ void save_network(network* nt, char* file)
       for (size_t k = 0; k < curr_size; k++)
       {
         //weights[i][j * curr_size + k] = gaussrand();
-        printf("weights[%lu][%lu] = %f\n", i, (j * curr_size + k), \
-            nt->weights[i][j * curr_size + k]);
         fprintf(f, "%f\n", nt->weights[i][j * curr_size + k]);
       }
     }
   }
   //nt->weights = weights;
-  printf("END\n");
   fclose(f);
 }
 
