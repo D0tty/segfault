@@ -327,6 +327,8 @@ int main(int argc, char *argv[])
 
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
+  
+  image_prety_print(img);
 
 	SDL_Surface *s = display_image(sdlimg);
 

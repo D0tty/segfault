@@ -50,34 +50,84 @@ void paragraph_free(struct paragraph *pa)
   }
 }
 
-/*POISSON FREE() POISSON FREE()*/
-
-
-
-//A refaire récursivement demain (sale sale faut pas regarder)
-
-/*struct paragraph* decoupage(struct image *img)
+struct page* page_create(struct paragraph *prgph)
 {
-  img = image_get_paragraph(img);
-  struct paragraph *prgph;
-  int y1 = 0, y2 = 0, cp = 0, w = img->w, h = img->h;
-  while(y2 < h)
-  {
-    if(is_line_blank(img, y2))
-    {
-      struct image *lgn = image_get_rect(img, 0, y1, w-1, y2);
-      // FAIRE LE TRAITEMENT DE LA LIGNE TROUVEE ICI
-      y2 = next_black_line(img, y2);
-      y1 = y2;
-    }
-    else
-    {
-      ++y2
-    }
-  }
-}*/
+  struct page *pg;
+  pg = malloc(sizeof(struct page));
+  pg->current_paragraph = prgph;
+  pg->next_paragraph = NULL;
+  return pg;
+}
 
-struct line* ligne_to_line(struct image *img, struct line *ligne)
+void page_free(struct page *pg)
+{
+  struct page *tmp = pg;
+  while(pg != NULL)
+  {
+    tmp = pg->next_paragraph;
+    paragraph_free(pg->current_paragraph);
+    free(pg);
+    pg = tmp;
+  }
+}
+
+struct page* image_to_page(struct image *img)
+{
+  struct image *ln = first_line_in_paragraph(img);
+  int lh = ln->h;
+  struct page *pg = NULL;
+  pg = to_page(img, pg, lh);
+  return pg;
+}
+
+struct page* to_page(struct image *img, struct page *pg, int lh)
+{
+  if(img->h == 0)
+  {
+    return NULL;   
+  }
+  else
+  {
+    struct image *prgph = first_paragraph_in_page(img, lh);
+    
+    img = image_get_rect(img, 0, prgph->h, img->w - 1, img->h - 1);
+    img = image_get_paragraph(img);
+
+    struct paragraph *prg = NULL;
+    prg = to_paragraph(prgph, prg);
+    
+    pg = page_create(prg);
+
+    pg->next_paragraph = to_page(img, pg->next_paragraph, lh);
+    return pg;
+  }
+}
+
+
+struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph)
+{
+  if(img->h == 0)
+  {
+    return NULL;
+  }
+  else
+  {
+    struct image *ligne = first_line_in_paragraph(img);
+
+    img = image_get_rect(img, 0, ligne->h, img->w - 1, img->h - 1);
+    img = image_get_paragraph(img);
+
+    struct line *ln = NULL;
+    ln = to_line(ligne, ln);
+    prgph = paragraph_create(ln);
+
+    prgph->next_line = to_paragraph(img, prgph->next_line);
+    return prgph;
+  }
+
+}
+
+struct line* to_line(struct image *img, struct line *ligne)
 {
   //Verifier si un image_get_rect(img, 0, 0, 0, 0) est NULL ou a
   //Une hauteur et une largeur de 0 et adapter en fonction
@@ -93,9 +143,32 @@ struct line* ligne_to_line(struct image *img, struct line *ligne)
   img = image_get_paragraph(img);
   /*IMPLEMENTER FONCTION IS_ESPACE => si blanc >= largeur char => espace*/
   ligne = line_create(chr);
-  ligne->next_char = ligne_to_line(img, ligne->next_char);
+  ligne->next_char = to_line(img, ligne->next_char);
   return ligne;
   }
+}
+
+struct image* first_paragraph_in_page(struct image *img, int lh)
+{
+  int i = 0, y = 0, h = img->h;
+  while(y < h)
+  { 
+    while(!is_line_blank(img, y))
+    {
+      ++y; 
+    }
+   while(is_line_blank(img, y))
+   {
+      ++y;
+      ++i;
+   }
+   if(i > lh)
+   {
+      return image_get_rect(img, 0, 0, img->w - 1, y);
+   }
+      i = 0;
+  } 
+  return img;
 }
 
 struct image* first_char_in_line(struct image *img)
@@ -108,13 +181,12 @@ struct image* first_char_in_line(struct image *img)
   return image_get_rect(img, 0, 0, x, img->h - 1);
 }
 
-//va surement disparaitre demain avec le passage a la recursion
-int next_black_line(struct image *img, int y)
+struct image* first_line_in_paragraph(struct image *img)
 {
-  int h = img->h;
-  while(y < h && is_line_blank(img, y))
+  int h = img->h, y = 0;
+  while(y < h && !is_line_blank(img, y))
   {
     ++y;
   }
-  return y;
+  return image_get_rect(img, 0, 0, img->w - 1, y);
 }
