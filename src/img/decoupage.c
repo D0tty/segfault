@@ -84,18 +84,18 @@ struct page* to_page(struct image *img, struct page *pg, int lh)
 {
   if(img->h == 0)
   {
-    return NULL;   
+    return NULL;
   }
   else
   {
     struct image *prgph = first_paragraph_in_page(img, lh);
-    
+
     img = image_get_rect(img, 0, prgph->h, img->w - 1, img->h - 1);
     img = image_get_paragraph(img);
 
     struct paragraph *prg = NULL;
     prg = to_paragraph(prgph, prg);
-    
+
     pg = page_create(prg);
 
     pg->next_paragraph = to_page(img, pg->next_paragraph, lh);
@@ -152,10 +152,10 @@ struct image* first_paragraph_in_page(struct image *img, int lh)
 {
   int i = 0, y = 0, h = img->h;
   while(y < h)
-  { 
+  {
     while(!is_line_blank(img, y))
     {
-      ++y; 
+      ++y;
     }
    while(is_line_blank(img, y))
    {
@@ -167,7 +167,7 @@ struct image* first_paragraph_in_page(struct image *img, int lh)
       return image_get_rect(img, 0, 0, img->w - 1, y);
    }
       i = 0;
-  } 
+  }
   return img;
 }
 
