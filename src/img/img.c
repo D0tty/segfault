@@ -13,17 +13,17 @@ void wait_for_keypressed(void)
   SDL_Event             event;
   for (;;)
   {
-     SDL_PollEvent( &event );
-     switch (event.type) {
-     case SDL_KEYDOWN: return;
-     default: break;
-     }
+    SDL_PollEvent( &event );
+    switch (event.type) {
+      case SDL_KEYDOWN: return;
+      default: break;
+    }
   }
 }
 
 /* SDL */
 
-static inline
+  static inline
 Uint8* pixelref(SDL_Surface *surf, unsigned x, unsigned y)
 {
   int bpp = surf->format->BytesPerPixel;
@@ -138,7 +138,7 @@ SDL_Surface* display_image(SDL_Surface *img)
   if ( screen == NULL )
   {
     errx(1, "Couldn't set %dx%d video mode: %s\n",
-    img->w, img->h, SDL_GetError());
+        img->w, img->h, SDL_GetError());
   }
 
   /* Blit onto the screen surface */
@@ -321,7 +321,7 @@ struct image* image_get_paragraph(struct image *img)
 
 int main(int argc, char *argv[])
 {
-	if(argc < 2)
+  if(argc < 2)
     return 1;
   //SDL init, load, gray, B&W
   init_sdl();
@@ -331,43 +331,44 @@ int main(int argc, char *argv[])
 
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
-  
-  image_prety_print(img);
 
-	SDL_Surface *s = display_image(sdlimg);
-  printf("\n");
+  //SDL_Surface *s = display_image(sdlimg);
+  //printf("\n");
   img = image_get_paragraph(img);
-  image_prety_print(img);
-	sdlimg = to_sdl_image(img);
-  printf("\n");
+  //sdlimg = to_sdl_image(img);
+
+
   struct image *i = first_line_in_paragraph(img);
-  printf("\n");
-  image_prety_print(i);
+  int lh = i->h;
 
-  struct line *ligne = NULL;
-  ligne = to_line(i, ligne);
-  
-  while(ligne->next_char != NULL)
+  struct page *pg = NULL;
+  pg = to_page(img, pg, lh);
+  while(pg != NULL)
   {
-
-    display_image(to_sdl_image(ligne->current_char));
-    ligne = ligne->next_char;
+    struct paragraph *prg = pg->current_paragraph;
+    while(prg != NULL)
+    { 
+      struct line *lg = prg->current_line;
+      while(lg != NULL)
+      {
+        display_image(to_sdl_image(lg->current_char));
+        lg = lg->next_char;
+      }
+      prg = prg->next_line;
+    }
+    pg = pg->next_paragraph;
   }
-  image_free(i);
-  line_free(ligne);
-  //struct image *test = image_create(0,0);;
-  //printf("%d",test->h); 
-	SDL_Surface *v = display_image(sdlimg);
 
+  image_free(i);
+  page_free(pg);
   //struct line *ln = line_create(img);
   //line_free(ln);
 
   /* free  */
-  SDL_FreeSurface(sdlimg);
-  SDL_FreeSurface(s);
-  SDL_FreeSurface(v);
+  //SDL_FreeSurface(sdlimg);
+  //SDL_FreeSurface(s);
   // if you try to free img after free ln which contains img in segfaults
-  //image_free(img);
+  // image_free(img);
   SDL_Quit();
 
   return 0;
