@@ -88,6 +88,7 @@ struct page* to_page(struct image *img, struct page *pg, int lh)
   }
   else
   {
+    img = image_get_paragraph(img);
     struct image *prgph = first_paragraph_in_page(img, lh);
     
     img = image_get_rect(img, 0, prgph->h, img->w - 1, img->h - 1);
@@ -112,6 +113,7 @@ struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph)
   }
   else
   {
+    img = image_get_paragraph(img);
     struct image *ligne = first_line_in_paragraph(img);
 
     img = image_get_rect(img, 0, ligne->h, img->w - 1, img->h - 1);
@@ -137,14 +139,14 @@ struct line* to_line(struct image *img, struct line *ligne)
   }
   else
   {
-  struct image *chr = first_char_in_line(img);
-
-  img = image_get_rect(img, chr->w, 0, img->w - 1, img->h - 1);
-  img = image_get_paragraph(img);
-  /*IMPLEMENTER FONCTION IS_ESPACE => si blanc >= largeur char => espace*/
-  ligne = line_create(chr);
-  ligne->next_char = to_line(img, ligne->next_char);
-  return ligne;
+    img = image_get_paragraph(img);
+    struct image *chr = first_char_in_line(img);
+    img = image_get_rect(img, chr->w, 0, img->w - 1, img->h - 1);
+    img = image_get_paragraph(img);
+    /*IMPLEMENTER FONCTION IS_ESPACE => si blanc >= largeur char => espace*/
+    ligne = line_create(chr);
+    ligne->next_char = to_line(img, ligne->next_char);
+    return ligne;
   }
 }
 
@@ -164,7 +166,7 @@ struct image* first_paragraph_in_page(struct image *img, int lh)
    }
    if(i > lh)
    {
-      return image_get_rect(img, 0, 0, img->w - 1, y);
+      return image_get_rect(img, 0, 0, img->w - 1, y - 1);
    }
       i = 0;
   } 
@@ -178,7 +180,7 @@ struct image* first_char_in_line(struct image *img)
   {
     ++x;
   }
-  return image_get_rect(img, 0, 0, x, img->h - 1);
+  return image_get_rect(img, 0, 0, x - 1, img->h - 1);
 }
 
 struct image* first_line_in_paragraph(struct image *img)
@@ -188,5 +190,5 @@ struct image* first_line_in_paragraph(struct image *img)
   {
     ++y;
   }
-  return image_get_rect(img, 0, 0, img->w - 1, y);
+  return image_get_rect(img, 0, 0, img->w - 1, y - 1);
 }

@@ -296,23 +296,27 @@ struct image* image_get_paragraph(struct image *img)
       y = 0,
       z = img->w - 1,
       t = img->h - 1;
-  while(is_column_blank(img, x))
+  while(is_column_blank(img, x) && x <= z)
   {
     ++x;
   }
-  while(is_column_blank(img, z))
+  while(is_column_blank(img, z) && z >= 0)
   {
     --z;
   }
-  while(is_line_blank(img, y))
+  while(is_line_blank(img, y) && y <= t)
   {
     ++y;
   }
-  while(is_line_blank(img, t))
+  while(is_line_blank(img, t) && t >= 0)
   {
     --t;
   }
-  return image_get_rect(img, x, y, z, t);
+  if(x <= z && y <= t)
+  {
+    return image_get_rect(img, x, y, z, t);
+  }
+  return image_create(0,0);
 }
 
 int main(int argc, char *argv[])
@@ -331,15 +335,32 @@ int main(int argc, char *argv[])
   image_prety_print(img);
 
 	SDL_Surface *s = display_image(sdlimg);
-
+  printf("\n");
   img = image_get_paragraph(img);
-
+  image_prety_print(img);
 	sdlimg = to_sdl_image(img);
+  printf("\n");
+  struct image *i = first_line_in_paragraph(img);
+  printf("\n");
+  image_prety_print(i);
 
+  struct line *ligne = NULL;
+  ligne = to_line(i, ligne);
+  
+  while(ligne->next_char != NULL)
+  {
+
+    display_image(to_sdl_image(ligne->current_char));
+    ligne = ligne->next_char;
+  }
+  image_free(i);
+  line_free(ligne);
+  //struct image *test = image_create(0,0);;
+  //printf("%d",test->h); 
 	SDL_Surface *v = display_image(sdlimg);
 
-  struct line *ln = line_create(img);
-  line_free(ln);
+  //struct line *ln = line_create(img);
+  //line_free(ln);
 
   /* free  */
   SDL_FreeSurface(sdlimg);
