@@ -340,16 +340,19 @@ struct image* image_merge(struct image *img1, struct image *img2)
   return img;
 }
 
-/*struct image* line_to_image(struct line *ln)
-  {
+struct image* line_to_image(struct line *ln)
+{
   struct line *tmp = ln->next_char;
   struct image *img = image_get_rect(ln->current_char, 0, 0,\
-  ln->current_char->w, ln->current_char->h);
+      ln->current_char->w, ln->current_char->h);
   while(tmp != NULL)
   {
+    img = image_merge(img,tmp->current_char);
+    tmp = tmp->next_char;
   }
   return img;
-  }*/
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -363,16 +366,10 @@ int main(int argc, char *argv[])
 
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
-  image_prety_print(img);
-  SDL_Surface *s = display_image(sdlimg);
 
   //printf("\n");
   //img = image_get_paragraph(img);
   //sdlimg = to_sdl_image(img);
-  display_image(to_sdl_image(img));
-  display_image(to_sdl_image(img));
-  image_prety_print(img);
-  printf("%d", img->h);
   struct image *i = first_line_in_paragraph(img);
   /*  int lh = i->h;
 
@@ -394,6 +391,11 @@ int main(int argc, char *argv[])
       pg = pg->next_paragraph;
       }
       */
+  struct line *ln = line_create(img);
+  ln->next_char = line_create(img);
+  struct image *test = line_to_image(ln);
+  image_prety_print(test);
+
   image_free(i);
   //page_free(pg);
   //struct line *ln = line_create(img);
@@ -401,7 +403,7 @@ int main(int argc, char *argv[])
 
   /* free  */
   //SDL_FreeSurface(sdlimg);
-  SDL_FreeSurface(s);
+  //SDL_FreeSurface(s);
   // if you try to free img after free ln which contains img in segfaults
   // image_free(img);
   SDL_Quit();
