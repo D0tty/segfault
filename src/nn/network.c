@@ -19,30 +19,57 @@ network* create_network(size_t* sizes, size_t nb_layers)
   nt->nb_layers = nb_layers;
   nt->sizes = sizes;
 
-  // Beware! The first layer doesn't have biases. As such, the biases sizes
-  // at index 1 in the sizes list.
-  size_t biases_length = nb_layers - 1;
-  double** biases = malloc(biases_length * sizeof (double*));
-  for (size_t i = 0; i < biases_length; i++)
+  size_t nb_inter = nb_layers - 1;
+
+  // No need to fill those lists with 0s, as they are always directly reassigned
+  // with new values.
+  double** activations_list = malloc(nb_layers * sizeof (double*));
+  double** activations_prime_list = malloc(nb_inter * sizeof (double*));
+  for (size_t i = 0; i < nb_inter; ++i)
   {
+    size_t activations_length = nt->sizes[i + 1];
+    size_t activations_size = activations_length * sizeof (double);
+    double* activations = malloc(activations_size);
+    double* activations_prime = malloc(activations_size);
+    // We ignore the first activation, as it is provided by the user.
+    activations_list[i + 1] = activations;
+    activations_prime_list[i] = activations_prime;
+  }
+  nt->activations_list = activations_list;
+  nt->activations_prime_list = activations_prime_list;
+
+  double** biases = malloc(nb_inter * sizeof (double*));
+  double** biases_grad = malloc(nb_inter * sizeof (double*));
+  double** biases_delta = malloc(nb_inter * sizeof (double*));
+  for (size_t i = 0; i < nb_inter; i++)
+  {
+    // Beware! The first layer doesn't have biases. As such, the biases sizes
+    // at index 1 in the sizes list.
     size_t size = sizes[i + 1];
     biases[i] = malloc(size * sizeof (double));
+    biases_grad[i] = malloc(size * sizeof (double));
+    biases_delta[i] = malloc(size * sizeof (double));
     for (size_t j = 0; j < size; j++)
     {
       biases[i][j] = gaussrand();
     }
   }
   nt->biases = biases;
+  nt->biases_grad = biases_grad;
+  nt->biases_delta = biases_delta;
 
-  // Wijk is the weight between the kth neuron in the ith layer and the jth
-  // neuron in the (i+1)th layer.
-  size_t weights_length = nb_layers - 1;
-  double** weights = malloc(weights_length * sizeof (double*));
-  for (size_t i = 0; i < weights_length; i++)
+  double** weights = malloc(nb_inter * sizeof (double*));
+  double** weights_grad = malloc(nb_inter * sizeof (double*));
+  double** weights_delta = malloc(nb_inter * sizeof (double*));
+  for (size_t i = 0; i < nb_inter; i++)
   {
+    // Wijk is the weight between the kth neuron in the ith layer and the jth
+    // neuron in the (i+1)th layer.
     size_t curr_size = sizes[i]; // Current layer size
     size_t next_size = sizes[i + 1]; // Next layer size
     weights[i] = malloc(curr_size * next_size * sizeof (double));
+    weights_grad[i] = malloc(curr_size * next_size * sizeof (double));
+    weights_delta[i] = malloc(curr_size * next_size * sizeof (double));
     // Why use next_layer index before curr_layer?
     // See http://neuralnetworksanddeeplearning.com/chap1.html#mjx-eqn-22
     for (size_t j = 0; j < next_size; j++)
@@ -54,6 +81,8 @@ network* create_network(size_t* sizes, size_t nb_layers)
     }
   }
   nt->weights = weights;
+  nt->weights_grad = weights_grad;
+  nt->weights_delta = weights_delta;
 
   return nt;
 }
@@ -62,11 +91,26 @@ void free_network(network* nt)
 {
   for (size_t i = 0; i < nt->nb_layers - 1; i++)
   {
+    // The first activation is the input, which was passed as argument, so
+    // we don't free it since it doesn't belong to us.
+    free(nt->activations_list[i + 1]);
+    free(nt->activations_prime_list[i]);
     free(nt->biases[i]);
+    free(nt->biases_grad[i]);
+    free(nt->biases_delta[i]);
     free(nt->weights[i]);
+    free(nt->weights_grad[i]);
+    free(nt->weights_delta[i]);
   }
+
+  free(nt->activations_list);
+  free(nt->activations_prime_list);
   free(nt->biases);
+  free(nt->biases_grad);
+  free(nt->biases_delta);
   free(nt->weights);
+  free(nt->weights_grad);
+  free(nt->weights_delta);
   free(nt);
 }
 
@@ -184,62 +228,23 @@ void feedforward(network* nt, double* input, double* activations)
   }
 }
 
-// Create gradients with empty weights and biases.
-gradients* create_gradients(network* nt)
+// Print biases and weights
+void print_biases_weights(network* nt, double** biases, double** weights)
 {
   size_t nb_inter = nt->nb_layers - 1;
-  double** biases = malloc(nb_inter * sizeof (double*));
-  double** weights = malloc(nb_inter * sizeof (double*));
-  for (size_t i = 0; i < nb_inter; ++i)
-  {
-    biases[i] = malloc(nt->sizes[i + 1] * sizeof (double));
-    weights[i] = malloc(nt->sizes[i] * nt->sizes[i + 1] * sizeof (double));
-
-    for (size_t j = 0; j < nt->sizes[i + 1]; ++j)
-    {
-      biases[i][j] = 0;
-    }
-    for (size_t j = 0; j < nt->sizes[i] * nt->sizes[i + 1]; ++j)
-    {
-      weights[i][j] = 0;
-    }
-  }
-  gradients* grad = malloc(sizeof (gradients));
-  grad->biases = biases;
-  grad->weights = weights;
-  return grad;
-}
-
-// Free the provided gradients.
-void free_gradients(network* nt, gradients* grad)
-{
-  size_t nb_inter = nt->nb_layers - 1;
-  for (size_t i = 0; i < nb_inter; ++i)
-  {
-    free(grad->biases[i]);
-    free(grad->weights[i]);
-  }
-  free(grad->biases);
-  free(grad->weights);
-  free(grad);
-}
-
-// Print the gradients.
-void print_grad(network* nt, gradients* grad)
-{
   printf("biases: [\n");
-  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
+  for (size_t i = 0; i < nb_inter; ++i)
   {
     printf("  ");
-    print_list(grad->biases[i], nt->sizes[i + 1]);
+    print_list(biases[i], nt->sizes[i + 1]);
     printf(",\n");
   }
   printf("]\n");
   printf("weights: [\n");
-  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
+  for (size_t i = 0; i < nb_inter; ++i)
   {
     printf("  ");
-    print_list(grad->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
+    print_list(weights[i], nt->sizes[i] * nt->sizes[i + 1]);
     printf(",\n");
   }
   printf("]\n\n");
@@ -247,7 +252,7 @@ void print_grad(network* nt, gradients* grad)
 
 // Backpropagates a change to the final output through all layers in order to
 // figure out a gradient that minimizes the cost for a given training data.
-void backprop(network* nt, training_datum* td, gradients* grad)
+void backprop(network* nt, training_datum* td)
 {
   size_t nb_layers = nt->nb_layers;
   size_t nb_inter = nt->nb_layers - 1;
@@ -255,29 +260,28 @@ void backprop(network* nt, training_datum* td, gradients* grad)
   // Compute the list of all activations for every layer, as well as the list
   // of activations through sigmoid prime (which tells us in which direction to
   // go to increase/decrease the activation).
-  double** activations_list = malloc(nb_layers * sizeof (double*));
-  double** activations_prime_list = malloc(nb_inter * sizeof (double*));
-  activations_list[0] = td->input;
+  nt->activations_list[0] = td->input;
   for (size_t i = 0; i < nb_inter; ++i)
   {
     size_t activations_length = nt->sizes[i + 1];
     size_t activations_size = activations_length * sizeof (double);
-    double* activations = malloc(activations_size);
-    double* activations_prime = malloc(activations_size);
-    feedforward_step(nt, activations_list[i], i, activations);
+    double* activations = nt->activations_list[i + 1];
+    double* activations_prime = nt->activations_prime_list[i];
+    feedforward_step(nt, nt->activations_list[i], i, activations);
     memcpy(activations_prime, activations, activations_size);
     vector_apply(activations, sigmoid, activations, activations_length);
     vector_apply(activations_prime, sigmoid_prime, activations_prime, activations_length);
-    activations_list[i + 1] = activations;
-    activations_prime_list[i] = activations_prime;
   }
 
-  double* delta = grad->biases[nb_inter - 1];
+  double* delta = nt->biases_delta[nb_inter - 1];
   size_t layer_size = nt->sizes[nb_layers - 1];
-  memcpy(delta, activations_list[nb_layers - 1], layer_size * sizeof (double));
-  vector_substract(delta, delta, td->output, layer_size); // Cost derivative
-  vector_multiply(delta, delta, activations_prime_list[nb_inter - 1], layer_size);
-  dot_ti(grad->weights[nb_inter - 1], delta, activations_list[nb_layers - 2], layer_size, 1, nt->sizes[nb_layers - 2]);
+  memcpy(delta, nt->activations_list[nb_layers - 1], layer_size * sizeof (double));
+
+   // Cost derivative
+  vector_substract(delta, delta, td->output, layer_size);
+  vector_multiply(delta, delta, nt->activations_prime_list[nb_inter - 1], layer_size);
+
+  dot_ti(nt->weights_delta[nb_inter - 1], delta, nt->activations_list[nb_layers - 2], layer_size, 1, nt->sizes[nb_layers - 2]);
   // Δ = (acti[-1] - output) * acti'[-1]
   // ∇biases[-1] = Δ
   // ∇weights[-1] = dot(Δ, transpose(acti[-2]))
@@ -288,36 +292,15 @@ void backprop(network* nt, training_datum* td, gradients* grad)
 
   for (size_t i = 2; i < nb_layers; ++i)
   {
-    double* activations_prime = activations_prime_list[nb_inter - i];
-    double* next_delta = grad->biases[nb_inter - i];
+    double* activations_prime = nt->activations_prime_list[nb_inter - i];
+    double* next_delta = nt->biases_delta[nb_inter - i];
     dot_ti(next_delta, nt->weights[nb_inter - i + 1], delta, nt->sizes[nb_inter - i + 1], nt->sizes[nb_inter - i + 2], 1);
     vector_multiply(next_delta, next_delta, activations_prime, nt->sizes[nb_inter - i + 1]);
-    dot_it(grad->weights[nb_inter - i], next_delta, activations_list[nb_layers - i - 1], nt->sizes[nb_inter - i + 1], 1, nt->sizes[nb_inter - i]);
+    dot_it(nt->weights_delta[nb_inter - i], next_delta, nt->activations_list[nb_layers - i - 1], nt->sizes[nb_inter - i + 1], 1, nt->sizes[nb_inter - i]);
     delta = next_delta;
     // Δ = dot(transpose(weights[-i + 1]), Δ) * acti'[-i]
     // ∇biases[-i] = Δ
     // ∇weights[-i] = dot(Δ, transpose(acti[-i - 1]))
-  }
-
-  for (size_t i = 0; i < nb_inter; ++i)
-  {
-    // The first activation is the input, which was passed as argument, so
-    // we don't free it since it doesn't belong to us.
-    free(activations_list[i + 1]);
-    free(activations_prime_list[i]);
-  }
-  free(activations_list);
-  free(activations_prime_list);
-}
-
-// Add two gradients.
-void add_gradients(network* nt, gradients* a, gradients* b)
-{
-  size_t nb_inter = nt->nb_layers - 1;
-  for (size_t i = 0; i < nb_inter; ++i)
-  {
-    vector_add(a->biases[i], a->biases[i], b->biases[i], nt->sizes[i + 1]);
-    vector_add(a->weights[i], a->weights[i], b->weights[i], nt->sizes[i] * nt->sizes[i + 1]);
   }
 }
 
@@ -326,21 +309,24 @@ void add_gradients(network* nt, gradients* a, gradients* b)
 void train(network* nt, training_datum** training_data,
     size_t training_data_length, double learning_rate)
 {
-  gradients* grad = create_gradients(nt);
+  size_t nb_inter = nt->nb_layers - 1;
 
   for (size_t i = 0; i < training_data_length; ++i)
   {
     training_datum* td = training_data[i];
-    gradients* delta = create_gradients(nt);
-    backprop(nt, td, delta);
-    add_gradients(nt, grad, delta);
-    free_gradients(nt, delta);
+    backprop(nt, td);
+    for (size_t i = 0; i < nb_inter; ++i)
+    {
+      vector_add(nt->biases_grad[i], nt->biases_delta[i], nt->biases_delta[i],
+                 nt->sizes[i + 1]);
+      vector_add(nt->weights_grad[i], nt->weights_delta[i],
+                 nt->weights_delta[i], nt->sizes[i] * nt->sizes[i + 1]);
+    }
   }
 
   // `grad` now contains the changes we need to apply to our network's biases
   // and weights in order to minimize the cost for our training data.
 
-  size_t nb_inter = nt->nb_layers - 1;
   double batch_factor = -learning_rate / (double)training_data_length;
   for (size_t i = 0; i < nb_inter; ++i)
   {
@@ -348,32 +334,30 @@ void train(network* nt, training_datum** training_data,
     // but it would imply two more loops.
     for (size_t j = 0; j < nt->sizes[i + 1]; ++j)
     {
-      nt->biases[i][j] += batch_factor * grad->biases[i][j];
+      nt->biases[i][j] += batch_factor * nt->biases_grad[i][j];
     }
     for (size_t j = 0; j < nt->sizes[i] * nt->sizes[i + 1]; ++j)
     {
-      nt->weights[i][j] += batch_factor * grad->weights[i][j];
+      nt->weights[i][j] += batch_factor * nt->weights_grad[i][j];
     }
   }
-
-  free_gradients(nt, grad);
 }
 
 // Stochastic gradient descent.
 void sgd(network* nt, training_datum** training_data,
-    size_t training_data_length, unsigned epochs, size_t mini_batch_size,
-    double eta)
+         size_t training_data_length, unsigned long long epochs,
+         size_t mini_batch_size, double eta)
 {
-  for (size_t epoch = 0; epoch < epochs; epoch++)
+  training_datum** td = malloc(training_data_length * sizeof (training_datum*));
+  for (unsigned long long epoch = 0; epoch < epochs; epoch++)
   {
-    training_datum** td = malloc(training_data_length * sizeof (training_datum*));
     shuffle(td, training_data, training_data_length, sizeof (training_datum*));
     for (size_t i = 0; i < training_data_length; i += mini_batch_size)
     {
       train(nt, td + i, MIN(mini_batch_size, training_data_length - i), eta);
     }
-    free(td);
   }
+  free(td);
 }
 
 void save_network(network* nt, char* file)
