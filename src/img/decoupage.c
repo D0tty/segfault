@@ -90,9 +90,16 @@ struct page* to_page(struct image *img, struct page *pg, int lh)
   {
     img = image_get_paragraph(img);
     struct image *prgph = first_paragraph_in_page(img, lh);
-
-    img = image_get_rect(img, 0, prgph->h, img->w - 1, img->h - 1);
-    img = image_get_paragraph(img);
+    //image_prety_print(prgph);
+    if(prgph->h == img->h && prgph->w == img->w)
+    {
+      img = image_create(0,0);
+    }
+    else
+    {
+      img = image_get_rect(img, 0, prgph->h, img->w - 1, img->h - 1);
+      img = image_get_paragraph(img);
+    }
 
     struct paragraph *prg = NULL;
     prg = to_paragraph(prgph, prg);
@@ -131,8 +138,6 @@ struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph)
 
 struct line* to_line(struct image *img, struct line *ligne)
 {
-  //Verifier si un image_get_rect(img, 0, 0, 0, 0) est NULL ou a
-  //Une hauteur et une largeur de 0 et adapter en fonction
   if(img->w == 0)
   {
     return NULL;
