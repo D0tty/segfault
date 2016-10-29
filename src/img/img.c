@@ -117,7 +117,9 @@ SDL_Surface* tograyscale(SDL_Surface* img)
 
 SDL_Surface* tobinary(SDL_Surface* img)
 {
-  Uint8 threshold = 60;
+<<<<<<< HEAD
+  Uint8 threshold = 150;
+>>>>>>> efb07d6ce456cd8892141c48bbfbd81c888c39e0
   for ( int x = 0; x < img->w; ++x )
   {
     for ( int y = 0; y < img->h; ++y )
