@@ -391,11 +391,6 @@ int main(int argc, char *argv[])
     pg = pg->next_paragraph;
   }
 
-  struct line *ln = line_create(img);
-  ln->next_char = line_create(img);
-  struct image *test = line_to_image(ln);
-  image_prety_print(test);
-
   image_free(i);
   //page_free(pg);
   //struct line *ln = line_create(img);
