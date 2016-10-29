@@ -45,4 +45,6 @@ struct image* first_line_in_paragraph(struct image *img);
 
 struct image* first_paragraph_in_page(struct image *img, int lh);
 
+struct image* line_to_image(struct line *ln);
+
 #endif

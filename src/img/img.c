@@ -323,6 +323,34 @@ struct image* image_get_paragraph(struct image *img)
   return image_get_rect(img, x, y, z, t);
 }
 
+struct image* image_merge(struct image *img1, struct image *img2)
+{
+  struct image *img = image_create(img1->w + img2->w, img1->h);
+  int i = 0;
+  for(i = 0; i < img->w; ++i)
+  {
+    for(int j = 0; j < img->h; ++j)
+      image_pixel(img, i + img1->w, j) = image_pixel(img2, i, j);
+  }
+  for(i = 0; i < img1->w; ++i)
+  {
+    for(int j = 0; j < img->h; ++j)
+      image_pixel(img, i, j) = image_pixel(img1, i, j);
+  }
+  return img;
+}
+
+/*struct image* line_to_image(struct line *ln)
+  {
+  struct line *tmp = ln->next_char;
+  struct image *img = image_get_rect(ln->current_char, 0, 0,\
+  ln->current_char->w, ln->current_char->h);
+  while(tmp != NULL)
+  {
+  }
+  return img;
+  }*/
+
 int main(int argc, char *argv[])
 {
   if(argc < 2)
@@ -332,10 +360,12 @@ int main(int argc, char *argv[])
   SDL_Surface* sdlimg = load_image(argv[1]);
   tograyscale(sdlimg);
   tobinary(sdlimg);
+
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
   image_prety_print(img);
   SDL_Surface *s = display_image(sdlimg);
+
   //printf("\n");
   //img = image_get_paragraph(img);
   //sdlimg = to_sdl_image(img);

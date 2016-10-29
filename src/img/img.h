@@ -50,4 +50,6 @@ int is_column_blank(struct image *img, int x);
 
 struct image* image_get_paragraph(struct image *img);
 
+struct image* image_merge(struct image *img1, struct image *img2);
+
 #endif
