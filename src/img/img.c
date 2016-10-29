@@ -371,26 +371,26 @@ int main(int argc, char *argv[])
   //img = image_get_paragraph(img);
   //sdlimg = to_sdl_image(img);
   struct image *i = first_line_in_paragraph(img);
-  /*  int lh = i->h;
+  int lh = i->h;
 
-      struct page *pg = NULL;
-      pg = to_page(img, pg, lh);
-      while(pg != NULL)
-      {
-      struct paragraph *prg = pg->current_paragraph;
-      while(prg != NULL)
-      {
+  struct page *pg = NULL;
+  pg = to_page(img, pg, lh);
+  while(pg != NULL)
+  {
+    struct paragraph *prg = pg->current_paragraph;
+    while(prg != NULL)
+    {
       struct line *lg = prg->current_line;
       while(lg != NULL)
       {
-      display_image(to_sdl_image(lg->current_char));
-      lg = lg->next_char;
+        display_image(to_sdl_image(lg->current_char));
+        lg = lg->next_char;
       }
       prg = prg->next_line;
-      }
-      pg = pg->next_paragraph;
-      }
-      */
+    }
+    pg = pg->next_paragraph;
+  }
+
   struct line *ln = line_create(img);
   ln->next_char = line_create(img);
   struct image *test = line_to_image(ln);

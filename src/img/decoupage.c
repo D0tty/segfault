@@ -160,11 +160,11 @@ struct image* first_paragraph_in_page(struct image *img, int lh)
   int i = 0, y = 0, h = img->h;
   while(y < h)
   {
-    while(!is_line_blank(img, y))
+    while(!is_line_blank(img, y) && y < h)
     {
       ++y;
     }
-   while(is_line_blank(img, y))
+   while(is_line_blank(img, y) && y < h)
    {
       ++y;
       ++i;
