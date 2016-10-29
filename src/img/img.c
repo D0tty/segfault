@@ -117,7 +117,7 @@ SDL_Surface* tograyscale(SDL_Surface* img)
 
 SDL_Surface* tobinary(SDL_Surface* img)
 {
-  Uint8 threshold = 90;
+  Uint8 threshold = 60;
   for ( int x = 0; x < img->w; ++x )
   {
     for ( int y = 0; y < img->h; ++y )
@@ -245,7 +245,8 @@ struct image* image_get_from_SDL(SDL_Surface* sdlimg)
   {
     for(int i = 0; i < img->w; ++i)
     {
-      image_pixel(img, i, j) = getpixel(sdlimg, i, j) != 0;
+      Uint32 pix = getpixel(sdlimg, i, j);
+      image_pixel(img, i, j) = pix != 0;
     }
   }
   return img;
@@ -297,10 +298,14 @@ struct image* image_get_paragraph(struct image *img)
       y = 0,
       z = img->w - 1,
       t = img->h - 1;
+  if(t == -1 || z == -1)
+    return image_create(0,0);
   while(is_column_blank(img, x) && x <= z)
   {
     ++x;
   }
+  if(x == z)
+    return image_create(0,0);
   while(is_column_blank(img, z) && z >= 0)
   {
     --z;
@@ -309,15 +314,13 @@ struct image* image_get_paragraph(struct image *img)
   {
     ++y;
   }
+  if(y == t)
+    return image_create(0,0);
   while(is_line_blank(img, t) && t >= 0)
   {
     --t;
   }
-  if(x <= z && y <= t)
-  {
-    return image_get_rect(img, x, y, z, t);
-  }
-  return image_create(0,0);
+  return image_get_rect(img, x, y, z, t);
 }
 
 int main(int argc, char *argv[])
@@ -329,18 +332,19 @@ int main(int argc, char *argv[])
   SDL_Surface* sdlimg = load_image(argv[1]);
   tograyscale(sdlimg);
   tobinary(sdlimg);
-
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
-
+  image_prety_print(img);
   SDL_Surface *s = display_image(sdlimg);
   //printf("\n");
-  img = image_get_paragraph(img);
+  //img = image_get_paragraph(img);
   //sdlimg = to_sdl_image(img);
-
-
+  display_image(to_sdl_image(img));
+  display_image(to_sdl_image(img));
+  image_prety_print(img);
+  printf("%d", img->h);
   struct image *i = first_line_in_paragraph(img);
-  int lh = i->h;
+/*  int lh = i->h;
 
   struct page *pg = NULL;
   pg = to_page(img, pg, lh);
@@ -359,9 +363,9 @@ int main(int argc, char *argv[])
     }
     pg = pg->next_paragraph;
   }
-
+*/
   image_free(i);
-  page_free(pg);
+  //page_free(pg);
   //struct line *ln = line_create(img);
   //line_free(ln);
 
