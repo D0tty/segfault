@@ -117,13 +117,14 @@ SDL_Surface* tograyscale(SDL_Surface* img)
 
 SDL_Surface* tobinary(SDL_Surface* img)
 {
+  Uint8 threshold = 90;
   for ( int x = 0; x < img->w; ++x )
   {
     for ( int y = 0; y < img->h; ++y )
     {
       Uint8 R, G, B;
       SDL_GetRGB(getpixel(img, x, y), img->format, &R, &G, &B);
-      R = G = B = (R+G+B)/3 < 60 ? 0 : 255;
+      R = G = B = (R+G+B)/3 < threshold ? 0 : 255;
       Uint32 pix = SDL_MapRGB(img->format, R, G, B);
       putpixel(img,x,y,pix);
     }
@@ -332,7 +333,7 @@ int main(int argc, char *argv[])
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
 
-  //SDL_Surface *s = display_image(sdlimg);
+  SDL_Surface *s = display_image(sdlimg);
   //printf("\n");
   img = image_get_paragraph(img);
   //sdlimg = to_sdl_image(img);
@@ -366,7 +367,7 @@ int main(int argc, char *argv[])
 
   /* free  */
   //SDL_FreeSurface(sdlimg);
-  //SDL_FreeSurface(s);
+  SDL_FreeSurface(s);
   // if you try to free img after free ln which contains img in segfaults
   // image_free(img);
   SDL_Quit();
