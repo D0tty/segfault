@@ -344,7 +344,7 @@ struct image* line_to_image(struct line *ln)
 {
   struct line *tmp = ln->next_char;
   struct image *img = image_get_rect(ln->current_char, 0, 0,\
-      ln->current_char->w, ln->current_char->h);
+      ln->current_char->w - 1, ln->current_char->h - 1);
   while(tmp != NULL)
   {
     img = image_merge(img,tmp->current_char);
@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
   //line_free(ln);
 
   /* free  */
-  //SDL_FreeSurface(sdlimg);
+  SDL_FreeSurface(sdlimg);
   //SDL_FreeSurface(s);
   // if you try to free img after free ln which contains img in segfaults
   // image_free(img);
