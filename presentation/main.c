@@ -10,7 +10,7 @@
 int main(int argc, char **argv)
 {
   init_sdl();
-  SDL_Surface* image = load_image("/afs/cri.epita.net/user/e/el/el_haw_m/u/Projet/michel_k/img/consequat.bmp");
+  SDL_Surface* image = load_image(argv[2]);
   unsigned long choix = strtoul(argv[1],NULL,10);
   if (choix == 1)
   {
