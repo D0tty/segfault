@@ -9,6 +9,10 @@
 
 int main(int argc, char **argv)
 {
+  if(argc < 3)
+  {
+    return 1;
+  }
   init_sdl();
   SDL_Surface* image = load_image(argv[2]);
   unsigned long choix = strtoul(argv[1],NULL,10);
@@ -23,4 +27,6 @@ int main(int argc, char **argv)
   }
 
   display_image(image);
+
+  return 0;
 }
