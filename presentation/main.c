@@ -7,13 +7,14 @@
 #include "pixel_operations.h"
 
 
-int main(int choix, char **argv)
+int main(int argc, char **argv)
 {
   init_sdl();
-  SDL_Surface* image = load_image(argv[1]);
-  display_image(image);
+  SDL_Surface* image = load_image("/afs/cri.epita.net/user/e/el/el_haw_m/u/Projet/michel_k/img/consequat.bmp");
+  unsigned long choix = strtoul(argv[1],NULL,10);
   if (choix == 1)
   {
+    warnx("1\n");
     image = tograyscale(image);
   }
   if (choix == 2)
