@@ -322,60 +322,7 @@ struct image* image_get_paragraph(struct image *img)
   }
   return image_get_rect(img, x, y, z, t);
 }
-
-struct image* lateral_cut(struct image *img)
-{
-  if(img->w == 0 || img->h == 0)
-  {
-    return image_create(0,0);
-  }
-  int x = 0, w = img->w - 1;
-  while(x <= w && is_column_blank(img, x))
-  {
-    ++x;  
-  }
-  if(x == w)
-    return image_create(0,0);
-  while(w > 0 && is_column_blank(img, w))
-  {
-    ++w;
-  }
-  return image_get_rect(img, x, 0, w, img->h - 1);
-}
-
-struct image* image_merge(struct image *img1, struct image *img2)
-{
-  struct image *img = image_create(img1->w + img2->w, img1->h);
-  int i = 0;
-  //copy img1 to img
-  for(i = 0; i < img1->w; ++i)
-  {
-    for(int j = 0; j < img->h; ++j)
-      image_pixel(img, i, j) = image_pixel(img1, i, j);
-  }
-  //copy img2 to img with an offset on the X axis: img->w
-  for(i = 0; i < img2->w; ++i)
-  {
-    for(int j = 0; j < img->h; ++j)
-      image_pixel(img, i + img1->w, j) = image_pixel(img2, i, j);
-  }
-  return img;
-}
-
-struct image* line_to_image(struct line *ln)
-{
-  struct line *tmp = ln->next_char;
-  struct image *img = image_get_rect(ln->current_char, 0, 0,\
-      ln->current_char->w - 1, ln->current_char->h - 1);
-  while(tmp != NULL)
-  {
-    img = image_merge(img,tmp->current_char);
-    tmp = tmp->next_char;
-  }
-  return img;
-}
-
-
+/*
 int main(int argc, char *argv[])
 {
   if(argc < 2)
@@ -385,55 +332,49 @@ int main(int argc, char *argv[])
   SDL_Surface* sdlimg = load_image(argv[1]);
   tograyscale(sdlimg);
   tobinary(sdlimg);
-
-  display_image(sdlimg);
-
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
-
+  image_prety_print(img);
+  SDL_Surface *s = display_image(sdlimg);
   //printf("\n");
   //img = image_get_paragraph(img);
   //sdlimg = to_sdl_image(img);
-  
   display_image(to_sdl_image(img));
+  display_image(to_sdl_image(img));
+  image_prety_print(img);
+  printf("%d", img->h);
   struct image *i = first_line_in_paragraph(img);
-  int lh = i->h;
-  
-  struct image *laligne;
-  SDL_Surface* sdllaligne;
+    int lh = i->h;
 
-
-  struct page *pg = NULL;
-  pg = to_page(img, pg, lh);
-  while(pg != NULL)
-  {
-    struct paragraph *prg = pg->current_paragraph;
-    while(prg != NULL)
-    {
+      struct page *pg = NULL;
+      pg = to_page(img, pg, lh);
+      while(pg != NULL)
+      {
+      struct paragraph *prg = pg->current_paragraph;
+      while(prg != NULL)
+      {
       struct line *lg = prg->current_line;
-      laligne = line_to_image(lg);
-      sdllaligne = to_sdl_image(laligne);
-      display_image(sdllaligne);
       while(lg != NULL)
       {
-        display_image(to_sdl_image(lg->current_char));
-        lg = lg->next_char;
+      display_image(to_sdl_image(lg->current_char));
+      lg = lg->next_char;
       }
       prg = prg->next_line;
-    }
-    pg = pg->next_paragraph;
-  }
-
+      }
+      pg = pg->next_paragraph;
+      }
+      
   image_free(i);
-  page_free(pg);
-  image_free(laligne);
+  //page_free(pg);
+  //struct line *ln = line_create(img);
+  //line_free(ln);
 
-  /* free  */
-  SDL_FreeSurface(sdlimg);
-  SDL_FreeSurface(sdllaligne);
+  //free
+  //SDL_FreeSurface(sdlimg);
+  SDL_FreeSurface(s);
   // if you try to free img after free ln which contains img in segfaults
   // image_free(img);
   SDL_Quit();
 
   return 0;
-}
+}*/
