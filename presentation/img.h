@@ -1,3 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <err.h>
+#include <string.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
+
 #ifndef IMG_H
 #define IMG_H
 

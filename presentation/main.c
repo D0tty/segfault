@@ -3,7 +3,7 @@
 #include <SDL/SDL_image.h>
 #include <err.h>
 #include <stdlib.h>
-#include <studio.h>
+#include <stdio.h>
 #include "pixel_operations.h"
 
 

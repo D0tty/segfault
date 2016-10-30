@@ -3,7 +3,7 @@
 CC=clang
  
 CPPFLAGS= `pkg-config --cflags sdl`
-CFLAGS= -Wall -Wextra -Werror -std=c99 -O3
+CFLAGS= -Wall -Wextra -Werror -std=c99 -ggdb
 LDFLAGS=
 LDLIBS= `pkg-config --libs sdl` -lSDL_image
  
@@ -14,7 +14,7 @@ all: main
  
 main: ${OBJ}
  
-clean:
+clean cl:
 	rm -f *~ *.o
 	rm -f main
  
