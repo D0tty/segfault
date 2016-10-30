@@ -1,7 +1,9 @@
-#include <img.c>
+#include "img.h"
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include <err.h>
+#include <stdlib.h>
+#include <studio.h>
 #include "pixel_operations.h"
 
 
