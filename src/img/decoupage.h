@@ -35,7 +35,7 @@ struct page* image_to_page(struct image *img);
 
 struct page* to_page(struct image *img, struct page *pg, int lh);
 
-struct line* to_line(struct image *img, struct line *ligne);
+struct line* to_line(struct image *img, struct line *ligne, int l);
 
 struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph);
 
@@ -46,5 +46,7 @@ struct image* first_line_in_paragraph(struct image *img);
 struct image* first_paragraph_in_page(struct image *img, int lh);
 
 struct image* line_to_image(struct line *ln);
+
+int is_space(struct image *img, int le);
 
 #endif

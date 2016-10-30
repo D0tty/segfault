@@ -124,9 +124,11 @@ struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph)
 
     img = image_get_rect(img, 0, ligne->h, img->w - 1, img->h - 1);
     img = image_get_paragraph(img);
+    struct image *space = first_char_in_line(ligne);
+    int l = (space->w / 6) * 5;
 
     struct line *ln = NULL;
-    ln = to_line(ligne, ln);
+    ln = to_line(ligne, ln, l);
     prgph = paragraph_create(ln);
 
     prgph->next_line = to_paragraph(img, prgph->next_line);
@@ -135,7 +137,7 @@ struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph)
 
 }
 
-struct line* to_line(struct image *img, struct line *ligne)
+struct line* to_line(struct image *img, struct line *ligne, int l)
 {
   if(img->w == 0)
   {
@@ -146,12 +148,33 @@ struct line* to_line(struct image *img, struct line *ligne)
     img = lateral_cut(img);
     struct image *chr = first_char_in_line(img);
     img = image_get_rect(img, chr->w, 0, img->w - 1, img->h - 1);
+    if(is_space(img, l) == 1)
+    {
+      ligne = line_create(chr);
+      struct image *esp = image_get_rect(img, 0, 0, l, img->h - 1);
+      ligne->next_char = line_create(esp);
+      img = lateral_cut(img);
+      ligne->next_char->next_char = to_line(img,ligne->next_char->next_char,l);
+    }
+    else
+    {
     img = lateral_cut(img);
-    /*IMPLEMENTER FONCTION IS_ESPACE => si blanc >= largeur char => espace*/
     ligne = line_create(chr);
-    ligne->next_char = to_line(img, ligne->next_char);
+    ligne->next_char = to_line(img, ligne->next_char, l);
+    }
     return ligne;
   }
+}
+
+int is_space(struct image *img, int le)
+{
+  int x = 0,
+      w = img->w;
+  while(x < w && is_column_blank(img, x))
+  {
+    ++x;
+  }
+  return (x >= le) ? 1 : 0;
 }
 
 struct image* first_paragraph_in_page(struct image *img, int lh)
