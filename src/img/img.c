@@ -383,9 +383,16 @@ int main(int argc, char *argv[])
   //SDL init, load, gray, B&W
   init_sdl();
   SDL_Surface* sdlimg = load_image(argv[1]);
-  tograyscale(sdlimg);
-  tobinary(sdlimg);
 
+  //dispaly color
+  display_image(sdlimg);
+
+  //display gray
+  tograyscale(sdlimg);
+  display_image(sdlimg);
+
+  //display B&W
+  tobinary(sdlimg);
   display_image(sdlimg);
 
   //create struct image
@@ -395,7 +402,6 @@ int main(int argc, char *argv[])
   //img = image_get_paragraph(img);
   //sdlimg = to_sdl_image(img);
   
-  display_image(to_sdl_image(img));
   struct image *i = first_line_in_paragraph(img);
   int lh = i->h;
   
