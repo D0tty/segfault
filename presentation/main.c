@@ -7,6 +7,8 @@
 #include "pixel_operations.h"
 
 
+
+
 void wait_for_keypressed(void) {
   SDL_Event             event;
   // Infinite loop, waiting for event
