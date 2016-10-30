@@ -390,6 +390,8 @@ int main(int argc, char *argv[])
   //printf("\n");
   //img = image_get_paragraph(img);
   //sdlimg = to_sdl_image(img);
+  
+  display_image(to_sdl_image(img));
   struct image *i = first_line_in_paragraph(img);
   int lh = i->h;
 
@@ -412,7 +414,7 @@ int main(int argc, char *argv[])
   }
 
   image_free(i);
-  //page_free(pg);
+  page_free(pg);
   //struct line *ln = line_create(img);
   //line_free(ln);
 

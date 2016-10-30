@@ -90,7 +90,6 @@ struct page* to_page(struct image *img, struct page *pg, int lh)
   {
     img = image_get_paragraph(img);
     struct image *prgph = first_paragraph_in_page(img, lh);
-    //image_prety_print(prgph);
     if(prgph->h == img->h && prgph->w == img->w)
     {
       img = image_create(0,0);
@@ -147,7 +146,7 @@ struct line* to_line(struct image *img, struct line *ligne)
     img = lateral_cut(img);
     struct image *chr = first_char_in_line(img);
     img = image_get_rect(img, chr->w, 0, img->w - 1, img->h - 1);
-    img = image_get_paragraph(img);
+    img = lateral_cut(img);
     /*IMPLEMENTER FONCTION IS_ESPACE => si blanc >= largeur char => espace*/
     ligne = line_create(chr);
     ligne->next_char = to_line(img, ligne->next_char);
