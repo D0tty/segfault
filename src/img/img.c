@@ -347,15 +347,17 @@ struct image* image_merge(struct image *img1, struct image *img2)
 {
   struct image *img = image_create(img1->w + img2->w, img1->h);
   int i = 0;
-  for(i = 0; i < img2->w; ++i)
-  {
-    for(int j = 0; j < img->h; ++j)
-      image_pixel(img, i + img1->w, j) = image_pixel(img2, i, j);
-  }
+  //copy img1 to img
   for(i = 0; i < img1->w; ++i)
   {
     for(int j = 0; j < img->h; ++j)
       image_pixel(img, i, j) = image_pixel(img1, i, j);
+  }
+  //copy img2 to img with an offset on the X axis: img->w
+  for(i = 0; i < img2->w; ++i)
+  {
+    for(int j = 0; j < img->h; ++j)
+      image_pixel(img, i + img1->w, j) = image_pixel(img2, i, j);
   }
   return img;
 }
