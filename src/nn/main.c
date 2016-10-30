@@ -12,7 +12,7 @@ int main(/*int argc, char *argv[]*/)
 
   size_t sizes[] = { 2, 3, 1 };
 	network* nt = create_network(sizes, 3);
-  
+
   print_network(nt, 1);
 
   save_network(nt,"save.txt");
@@ -21,6 +21,6 @@ int main(/*int argc, char *argv[]*/)
   nt = load_network("save.txt");
   save_network(nt,"save_after_laod.txt");
   free_network(nt);
-  
+
   return 0;
 }
