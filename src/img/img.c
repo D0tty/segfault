@@ -398,9 +398,10 @@ int main(int argc, char *argv[])
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
 
-  //printf("\n");
-  //img = image_get_paragraph(img);
-  //sdlimg = to_sdl_image(img);
+  //display paragraph
+  img = image_get_paragraph(img);
+  sdlimg = to_sdl_image(img);
+  display_image(sdlimg);
 
   struct image *i = first_line_in_paragraph(img);
   int lh = i->h;
