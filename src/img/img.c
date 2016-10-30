@@ -332,7 +332,7 @@ struct image* lateral_cut(struct image *img)
   int x = 0, w = img->w - 1;
   while(x <= w && is_column_blank(img, x))
   {
-    ++x;  
+    ++x;
   }
   if(x == w)
     return image_create(0,0);
@@ -383,22 +383,29 @@ int main(int argc, char *argv[])
   //SDL init, load, gray, B&W
   init_sdl();
   SDL_Surface* sdlimg = load_image(argv[1]);
-  tograyscale(sdlimg);
-  tobinary(sdlimg);
 
+  //dispaly color
+  display_image(sdlimg);
+
+  //display gray
+  tograyscale(sdlimg);
+  display_image(sdlimg);
+
+  //display B&W
+  tobinary(sdlimg);
   display_image(sdlimg);
 
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
 
-  //printf("\n");
-  //img = image_get_paragraph(img);
-  //sdlimg = to_sdl_image(img);
-  
-  display_image(to_sdl_image(img));
+  //display paragraph
+  img = image_get_paragraph(img);
+  sdlimg = to_sdl_image(img);
+  display_image(sdlimg);
+
   struct image *i = first_line_in_paragraph(img);
   int lh = i->h;
-  
+
   struct image *laligne;
   SDL_Surface* sdllaligne;
 
