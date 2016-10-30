@@ -384,6 +384,8 @@ int main(int argc, char *argv[])
   tograyscale(sdlimg);
   tobinary(sdlimg);
 
+  display_image(sdlimg);
+
   //create struct image
   struct image *img = image_get_from_SDL(sdlimg);
 
