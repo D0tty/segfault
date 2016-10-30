@@ -401,6 +401,10 @@ int main(int argc, char *argv[])
     while(prg != NULL)
     {
       struct line *lg = prg->current_line;
+      //@TODO
+      struct image *laligne = line_to_image(lg);
+      ++laligne;--laligne;
+      //@TODO
       while(lg != NULL)
       {
         display_image(to_sdl_image(lg->current_char));
