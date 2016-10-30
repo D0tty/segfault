@@ -191,7 +191,7 @@ struct image* image_create(int w, int h)
   {
     for(int i = 0; i < w; ++i)
     {
-      image_pixel(img, i, j) = 0;
+      image_pixel(img, i, j) = 1;
     }
   }
   return img;
@@ -362,6 +362,29 @@ struct image* image_merge(struct image *img1, struct image *img2)
   return img;
 }
 
+struct image* image_merge_vertical(struct image *img1, struct image *img2)
+{
+  int mx = (img1->w > img2->w) ? img1->w : img2->w;
+  struct image *img = image_create(mx, img1->h + img2->h);
+  int i = 0;
+
+  for(i = 0; i < img1->w; ++i)
+  {
+    for(int j = 0; j < img1->h; ++j)
+    {
+      image_pixel(img, i, j) = image_pixel(img1, i, j);
+    }
+  }
+  for(i = 0; i < img2->w; ++i)
+  {
+    for(int j = 0; j < img2->h; ++j)
+    {
+      image_pixel(img, i, j + img1->h) = image_pixel(img2, i, j);
+    } 
+  }
+  return img;  
+}
+
 struct image* line_to_image(struct line *ln)
 {
   struct line *tmp = ln->next_char;
@@ -375,6 +398,17 @@ struct image* line_to_image(struct line *ln)
   return img;
 }
 
+struct image* paragraph_to_image(struct paragraph *prg)
+{
+  struct paragraph *tmp = prg->next_line;
+  struct image *img = line_to_image(prg->current_line);
+  while(tmp != NULL)
+  {
+    img = image_merge_vertical(img, line_to_image(tmp->current_line));
+    tmp = tmp->next_line;
+  }
+  return img;
+}
 
 int main(int argc, char *argv[])
 {
@@ -415,6 +449,7 @@ int main(int argc, char *argv[])
   while(pg != NULL)
   {
     struct paragraph *prg = pg->current_paragraph;
+    display_image(to_sdl_image(paragraph_to_image(prg)));
     while(prg != NULL)
     {
       struct line *lg = prg->current_line;

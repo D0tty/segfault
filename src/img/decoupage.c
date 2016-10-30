@@ -129,7 +129,7 @@ struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph)
     img = image_get_rect(img, 0, ligne->h, img->w - 1, img->h - 1);
     img = image_get_paragraph(img);
     struct image *space = first_char_in_line(ligne);
-    int l = (space->w / 6) * 5;
+    int l = (space->w / 6) * 4;
 
     struct line *ln = NULL;
     ln = to_line(ligne, ln, l);
