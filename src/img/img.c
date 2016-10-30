@@ -392,6 +392,10 @@ int main(int argc, char *argv[])
   //sdlimg = to_sdl_image(img);
   struct image *i = first_line_in_paragraph(img);
   int lh = i->h;
+  
+  struct image *laligne;
+  SDL_Surface* sdllaligne;
+
 
   struct page *pg = NULL;
   pg = to_page(img, pg, lh);
@@ -401,10 +405,9 @@ int main(int argc, char *argv[])
     while(prg != NULL)
     {
       struct line *lg = prg->current_line;
-      //@TODO
-      struct image *laligne = line_to_image(lg);
-      ++laligne;--laligne;
-      //@TODO
+      laligne = line_to_image(lg);
+      sdllaligne = to_sdl_image(laligne);
+      display_image(sdllaligne);
       while(lg != NULL)
       {
         display_image(to_sdl_image(lg->current_char));
@@ -416,13 +419,14 @@ int main(int argc, char *argv[])
   }
 
   image_free(i);
+  image_free(laligne);
   //page_free(pg);
   //struct line *ln = line_create(img);
   //line_free(ln);
 
   /* free  */
   SDL_FreeSurface(sdlimg);
-  //SDL_FreeSurface(s);
+  SDL_FreeSurface(sdllaligne);
   // if you try to free img after free ln which contains img in segfaults
   // image_free(img);
   SDL_Quit();
