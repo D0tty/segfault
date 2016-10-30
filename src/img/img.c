@@ -323,6 +323,26 @@ struct image* image_get_paragraph(struct image *img)
   return image_get_rect(img, x, y, z, t);
 }
 
+struct image* lateral_cut(struct image *img)
+{
+  if(img->w == 0 || img->h == 0)
+  {
+    return image_create(0,0);
+  }
+  int x = 0, w = img->w - 1;
+  while(x <= w && is_column_blank(img, x))
+  {
+    ++x;  
+  }
+  if(x == w)
+    return image_create(0,0);
+  while(w > 0 && is_column_blank(img, w))
+  {
+    ++w;
+  }
+  return image_get_rect(img, x, 0, w, img->h - 1);
+}
+
 struct image* image_merge(struct image *img1, struct image *img2)
 {
   struct image *img = image_create(img1->w + img2->w, img1->h);

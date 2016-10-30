@@ -144,7 +144,7 @@ struct line* to_line(struct image *img, struct line *ligne)
   }
   else
   {
-    img = image_get_paragraph(img);
+    img = lateral_cut(img);
     struct image *chr = first_char_in_line(img);
     img = image_get_rect(img, chr->w, 0, img->w - 1, img->h - 1);
     img = image_get_paragraph(img);

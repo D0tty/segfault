@@ -52,4 +52,6 @@ struct image* image_get_paragraph(struct image *img);
 
 struct image* image_merge(struct image *img1, struct image *img2);
 
+struct image* lateral_cut(struct image *img);
+
 #endif
