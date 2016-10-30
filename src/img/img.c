@@ -332,7 +332,7 @@ struct image* lateral_cut(struct image *img)
   int x = 0, w = img->w - 1;
   while(x <= w && is_column_blank(img, x))
   {
-    ++x;  
+    ++x;
   }
   if(x == w)
     return image_create(0,0);
@@ -401,10 +401,10 @@ int main(int argc, char *argv[])
   //printf("\n");
   //img = image_get_paragraph(img);
   //sdlimg = to_sdl_image(img);
-  
+
   struct image *i = first_line_in_paragraph(img);
   int lh = i->h;
-  
+
   struct image *laligne;
   SDL_Surface* sdllaligne;
 
