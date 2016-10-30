@@ -121,6 +121,7 @@ struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph)
   {
     img = image_get_paragraph(img);
     struct image *ligne = first_line_in_paragraph(img);
+    ligne = lateral_cut(ligne);
 
     img = image_get_rect(img, 0, ligne->h, img->w - 1, img->h - 1);
     img = image_get_paragraph(img);

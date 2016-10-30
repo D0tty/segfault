@@ -1,7 +1,1 @@
-* WE NEED TO CODE
-
-* we'll need to work on a basic paragraph recognition and then lines and then chars
-* we'll need to think this function recursively and returning someting iterable like a list
-  so that we can shot each paragraph of a picture and then each lines and then chars
-* we'll need to think about a data sturct which'll be easy to use and can do what we want
 * we'll need tests to show for the presentation (make test)
