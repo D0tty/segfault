@@ -25,4 +25,7 @@ proper pro:
 clean cl: proper
 	rm -f *~ ${BIN}
 
+test: img
+	./img ../../img/multicolore.png
+
 # END
