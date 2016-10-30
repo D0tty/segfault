@@ -322,7 +322,7 @@ struct image* image_get_paragraph(struct image *img)
   }
   return image_get_rect(img, x, y, z, t);
 }
-
+/*
 int main(int argc, char *argv[])
 {
   if(argc < 2)
@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
   image_prety_print(img);
   printf("%d", img->h);
   struct image *i = first_line_in_paragraph(img);
-  /*  int lh = i->h;
+    int lh = i->h;
 
       struct page *pg = NULL;
       pg = to_page(img, pg, lh);
@@ -363,13 +363,13 @@ int main(int argc, char *argv[])
       }
       pg = pg->next_paragraph;
       }
-      */
+      
   image_free(i);
   //page_free(pg);
   //struct line *ln = line_create(img);
   //line_free(ln);
 
-  /* free  */
+  //free
   //SDL_FreeSurface(sdlimg);
   SDL_FreeSurface(s);
   // if you try to free img after free ln which contains img in segfaults
@@ -377,4 +377,4 @@ int main(int argc, char *argv[])
   SDL_Quit();
 
   return 0;
-}
+}*/
