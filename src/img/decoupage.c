@@ -77,6 +77,7 @@ struct page* image_to_page(struct image *img)
   int lh = ln->h;
   struct page *pg = NULL;
   pg = to_page(img, pg, lh);
+  image_free(ln);
   return pg;
 }
 
@@ -106,6 +107,8 @@ struct page* to_page(struct image *img, struct page *pg, int lh)
     pg = page_create(prg);
 
     pg->next_paragraph = to_page(img, pg->next_paragraph, lh);
+    
+    image_free(prgph);
     return pg;
   }
 }
@@ -133,6 +136,9 @@ struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph)
     prgph = paragraph_create(ln);
 
     prgph->next_line = to_paragraph(img, prgph->next_line);
+    
+    image_free(ligne);   
+    image_free(space);
     return prgph;
   }
 
