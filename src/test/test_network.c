@@ -83,10 +83,10 @@ void test_network_sgd()
   test_network_output(nt, (double[]){ 0, 1 });
   test_network_output(nt, (double[]){ 1, 1 });
 
-  char *saveto = "xor_trained.txt";
-  save_network(nt, saveto);
+  //char *saveto = "xor_trained.txt";
+  //save_network(nt, saveto);
 
-  printf("Network saved to: %s", saveto);
+  //printf("Network saved to: %s", saveto);
 
   free_network(nt);
   free(datum1);
@@ -94,7 +94,7 @@ void test_network_sgd()
   free(datum3);
   free(datum4);
 
-  printf("sgd: ok\n");
+  //printf("sgd: ok\n");
 }
 
 void test_network_failure_rate(unsigned epochs)
