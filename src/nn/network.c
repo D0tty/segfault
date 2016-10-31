@@ -328,14 +328,14 @@ void backprop(network* nt, training_datum* td)
 
 // Train the network on the provided training data with the provided learning
 // rate.
-void train(network* nt, training_datum** training_data,
-           size_t training_data_length, double learning_rate)
+void train(network* nt, training_datum** batch, size_t batch_length,
+           double learning_rate, double weight_decay, size_t td_length)
 {
   size_t nb_inter = nt->nb_layers - 1;
 
-  for (size_t i = 0; i < training_data_length; ++i)
+  for (size_t i = 0; i < batch_length; ++i)
   {
-    training_datum* td = training_data[i];
+    training_datum* td = batch[i];
     backprop(nt, td);
     for (size_t i = 0; i < nb_inter; ++i)
     {
@@ -349,10 +349,12 @@ void train(network* nt, training_datum** training_data,
   // `grad` now contains the changes we need to apply to our network's biases
   // and weights in order to minimize the cost for our training data.
 
-  double batch_factor = -learning_rate / (double)training_data_length;
+  // L2 regularization
+  double l2_factor = 1. - learning_rate * (weight_decay / (double)td_length);
+  double batch_factor = -learning_rate / (double)batch_length;
   for (size_t i = 0; i < nb_inter; ++i)
   {
-    // Optimization: could use `vector_scalar_multiply` and `vector_add` here,
+    // @TODO: Optimization: could use `vector_scalar_multiply` and `vector_add` here,
     // but it would imply two more loops.
     for (size_t j = 0; j < nt->sizes[i + 1]; ++j)
     {
@@ -360,7 +362,8 @@ void train(network* nt, training_datum** training_data,
     }
     for (size_t j = 0; j < nt->sizes[i] * nt->sizes[i + 1]; ++j)
     {
-      nt->weights[i][j] += batch_factor * nt->weights_grad[i][j];
+      nt->weights[i][j] = l2_factor * nt->weights[i][j] +
+                          batch_factor * nt->weights_grad[i][j];
     }
   }
 }
@@ -368,7 +371,7 @@ void train(network* nt, training_datum** training_data,
 // Stochastic gradient descent.
 void sgd(network* nt, training_datum** training_data,
          size_t training_data_length, unsigned long long epochs,
-         size_t mini_batch_size, double eta)
+         size_t mini_batch_size, double learning_rate, double weight_decay)
 {
   training_datum** td = malloc(training_data_length * sizeof (training_datum*));
   for (unsigned long long epoch = 0; epoch < epochs; epoch++)
@@ -376,7 +379,8 @@ void sgd(network* nt, training_datum** training_data,
     shuffle(td, training_data, training_data_length, sizeof (training_datum*));
     for (size_t i = 0; i < training_data_length; i += mini_batch_size)
     {
-      train(nt, td + i, MIN(mini_batch_size, training_data_length - i), eta);
+      train(nt, td + i, MIN(mini_batch_size, training_data_length - i),
+            learning_rate, weight_decay, training_data_length);
     }
   }
   free(td);
