@@ -28,11 +28,12 @@ int main()
   do
 	{
 		system("clear");
-		printf("Select one choice:\n\n\t1: XOR\n\t2: AND\n\t3: OR\n\n\t0: Quit\n\
+		printf("Select one choice:\n\n\t1: XOR\n\t2: AND\n\t3: OR\n\t4: XOR RANDOM\
+        \n\n\t0: Quit\n\
 				\nchoice:");
 		fflush(stdin);
 		scanf(" %c", &sel);
-	}while( (sel != '1') && (sel != '2') && (sel != '3') &&\
+	}while( (sel != '1') && (sel != '2') && (sel != '3') && (sel != '4') &&\
 					(sel != '0'));
   
   switch(sel)
@@ -60,7 +61,11 @@ int main()
 	    printf("The network have been created from this file: %s\n", file);
 			test_net(nt);
 			break;
-		
+
+    case '4':
+     test_network_sgd();
+     break;
+
 		default :
 			return 2;
 	}
