@@ -19,12 +19,14 @@ void test_net(network *nt)
 int main()
 {
 	// test_vector();
-	//test_network();	
+	//test_network();
+
+	srand(time(NULL)); // Randomize the seed.
 
 	char sel = '\0';
   char *file = NULL;
 	network *nt = NULL;
-  
+
   do
 	{
 		system("clear");
@@ -35,7 +37,7 @@ int main()
 		scanf(" %c", &sel);
 	}while( (sel != '1') && (sel != '2') && (sel != '3') && (sel != '4') &&\
 					(sel != '0'));
-  
+
   switch(sel)
 	{
 		case '0':
