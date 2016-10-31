@@ -11,11 +11,14 @@ OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
 BIN= ${SRC:.c=}
 
-all: test pro
+all: test pro run #test pro
 
 -include ${DEP}
 
 test: ${OBJ}
+
+run: all
+	clear;./test
 
 proper pro:                                                                     
 	  rm -f  ${OBJ} ${DEP}
