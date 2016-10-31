@@ -1,6 +1,7 @@
 ## Simple SDL mini code
 
-CC=clang
+#CC=clang
+CC=gcc
 
 CPPFLAGS=
 CFLAGS= -Wall -Wextra -Werror -std=c99 -ggdb
