@@ -200,8 +200,8 @@ void perf_xor(unsigned epochs)
 
 void test_network()
 {
-	// srand(time(NULL)); // Randomize the seed.
-	srand(44); // Randomize the seed.
+	srand(time(NULL)); // Randomize the seed.
+	// srand(44); // Unrandomize the seed.
 
   // perf_xor(100);
   // test_network_feedforward();
