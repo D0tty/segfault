@@ -23,18 +23,22 @@ network* create_network(size_t* sizes, size_t nb_layers)
 
   // No need to fill those lists with 0s, as they are always directly reassigned
   // with new values.
+  double** activations_raw_list = malloc(nb_inter * sizeof (double*));
   double** activations_list = malloc(nb_layers * sizeof (double*));
   double** activations_prime_list = malloc(nb_inter * sizeof (double*));
   for (size_t i = 0; i < nb_inter; ++i)
   {
     size_t activations_length = nt->sizes[i + 1];
     size_t activations_size = activations_length * sizeof (double);
+    double* activations_raw = malloc(activations_size);
     double* activations = malloc(activations_size);
     double* activations_prime = malloc(activations_size);
     // We ignore the first activation, as it is provided by the user.
+    activations_raw_list[i] = activations_raw;
     activations_list[i + 1] = activations;
     activations_prime_list[i] = activations_prime;
   }
+  nt->activations_raw_list = activations_raw_list;
   nt->activations_list = activations_list;
   nt->activations_prime_list = activations_prime_list;
 
@@ -91,6 +95,7 @@ void free_network(network* nt)
 {
   for (size_t i = 0; i < nt->nb_layers - 1; i++)
   {
+    free(nt->activations_raw_list[i]);
     // The first activation is the input, which was passed as argument, so
     // we don't free it since it doesn't belong to us.
     free(nt->activations_list[i + 1]);
@@ -103,6 +108,7 @@ void free_network(network* nt)
     free(nt->weights_delta[i]);
   }
 
+  free(nt->activations_raw_list);
   free(nt->activations_list);
   free(nt->activations_prime_list);
   free(nt->biases);
@@ -261,43 +267,59 @@ void backprop(network* nt, training_datum* td)
   // of activations through sigmoid prime (which tells us in which direction to
   // go to increase/decrease the activation).
   nt->activations_list[0] = td->input;
-  for (size_t i = 0; i < nb_inter; ++i)
+  for (size_t i = 1; i < nb_layers; ++i)
   {
-    size_t activations_length = nt->sizes[i + 1];
-    size_t activations_size = activations_length * sizeof (double);
-    double* activations = nt->activations_list[i + 1];
-    double* activations_prime = nt->activations_prime_list[i];
-    feedforward_step(nt, nt->activations_list[i], i, activations);
-    memcpy(activations_prime, activations, activations_size);
-    vector_apply(activations, sigmoid, activations, activations_length);
-    vector_apply(activations_prime, sigmoid_prime, activations_prime, activations_length);
+    size_t activations_length = nt->sizes[i];
+    double* prev_activations = nt->activations_list[i - 1];
+    double* activations_raw = nt->activations_raw_list[i - 1];
+    double* activations = nt->activations_list[i];
+    double* activations_prime = nt->activations_prime_list[i - 1];
+
+    feedforward_step(nt, prev_activations, i - 1, activations_raw);
+    vector_apply(activations, sigmoid, activations_raw, activations_length);
+    vector_apply(activations_prime, sigmoid_prime, activations_raw, activations_length);
   }
 
-  double* delta = nt->biases_delta[nb_inter - 1];
-  size_t layer_size = nt->sizes[nb_layers - 1];
-  memcpy(delta, nt->activations_list[nb_layers - 1], layer_size * sizeof (double));
+  double* b_delta = nt->biases_delta[nb_inter - 1];
+  double* w_delta = nt->weights_delta[nb_inter - 1];
+  double* activations = nt->activations_list[nb_layers - 1];
+  double* prev_activations = nt->activations_list[nb_layers - 2];
+  size_t size = nt->sizes[nb_layers - 1];
+  size_t prev_size = nt->sizes[nb_layers - 2];
 
-   // Cost derivative
-  vector_substract(delta, delta, td->output, layer_size);
-  vector_multiply(delta, delta, nt->activations_prime_list[nb_inter - 1], layer_size);
+  // Cost derivative
+  for (size_t i = 0; i < size; ++i)
+  {
+    // Cross entropy derivative
+    b_delta[i] = activations[i] - td->output[i];
+  }
 
-  dot_ti(nt->weights_delta[nb_inter - 1], delta, nt->activations_list[nb_layers - 2], layer_size, 1, nt->sizes[nb_layers - 2]);
-  // Δ = (acti[-1] - output) * acti'[-1]
+  dot_ti(w_delta, b_delta, prev_activations, size, 1, prev_size);
+
+  // Δ = cost_derivative(acti[-1], output)
   // ∇biases[-1] = Δ
   // ∇weights[-1] = dot(Δ, transpose(acti[-2]))
-  // In our case, we dot(transpose(Δ), acti[-2]) since our matrices are already
-  // transposed in memory.
+  // In our case, we dot(transpose(Δ), acti[-2]) since our matrices are
+  // already transposed in memory.
   // Which is strange, since we don't need to do it in the loop below.
   // @TODO: Investigate.
 
+  double* prev_b_delta = b_delta;
   for (size_t i = 2; i < nb_layers; ++i)
   {
+    double* prev_activations = nt->activations_list[nb_layers - i - 1];
     double* activations_prime = nt->activations_prime_list[nb_inter - i];
-    double* next_delta = nt->biases_delta[nb_inter - i];
-    dot_ti(next_delta, nt->weights[nb_inter - i + 1], delta, nt->sizes[nb_inter - i + 1], nt->sizes[nb_inter - i + 2], 1);
-    vector_multiply(next_delta, next_delta, activations_prime, nt->sizes[nb_inter - i + 1]);
-    dot_it(nt->weights_delta[nb_inter - i], next_delta, nt->activations_list[nb_layers - i - 1], nt->sizes[nb_inter - i + 1], 1, nt->sizes[nb_inter - i]);
-    delta = next_delta;
+    double* next_weights = nt->weights[nb_inter - i + 1];
+    double* b_delta = nt->biases_delta[nb_inter - i];
+    double* w_delta = nt->weights_delta[nb_inter - i];
+    size_t prev_size = nt->sizes[nb_inter - i];
+    size_t size = nt->sizes[nb_inter - i + 1];
+    size_t next_size = nt->sizes[nb_inter - i + 2];
+
+    dot_ti(b_delta, next_weights, prev_b_delta, size, next_size, 1);
+    vector_multiply(b_delta, b_delta, activations_prime, size);
+    dot_it(w_delta, b_delta, prev_activations, size, 1, prev_size);
+    prev_b_delta = b_delta;
     // Δ = dot(transpose(weights[-i + 1]), Δ) * acti'[-i]
     // ∇biases[-i] = Δ
     // ∇weights[-i] = dot(Δ, transpose(acti[-i - 1]))
@@ -307,7 +329,7 @@ void backprop(network* nt, training_datum* td)
 // Train the network on the provided training data with the provided learning
 // rate.
 void train(network* nt, training_datum** training_data,
-    size_t training_data_length, double learning_rate)
+           size_t training_data_length, double learning_rate)
 {
   size_t nb_inter = nt->nb_layers - 1;
 

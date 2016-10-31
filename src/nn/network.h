@@ -4,6 +4,7 @@
 typedef struct network {
   size_t nb_layers;
   size_t* sizes;
+  double** activations_raw_list;
   double** activations_list;
   double** activations_prime_list;
   double** biases;
@@ -35,8 +36,6 @@ void train(network* nt, training_datum** training_data,
 void sgd(network* nt, training_datum** training_data,
          size_t training_data_length, unsigned long long epochs, size_t mini_batch_size,
          double eta);
-
-void backprop(network* nt, training_datum* td);
 
 void print_grad_net(network* nt);
 
