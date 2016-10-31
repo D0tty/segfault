@@ -80,7 +80,8 @@ network* create_network(size_t* sizes, size_t nb_layers)
     {
       for (size_t k = 0; k < curr_size; k++)
       {
-        weights[i][j * curr_size + k] = gaussrand();
+        // Small weight initialization
+        weights[i][j * curr_size + k] = gaussrand() / sqrt(curr_size);
       }
     }
   }
