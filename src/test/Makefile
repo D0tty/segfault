@@ -10,14 +10,21 @@ SRC= ../util/vector.c ../util/gaussrand.c ../util/shuffle.c ../nn/network.c \
 		 ../util/debug.c test_vector.c test_network.c test.c
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
+BIN= ${SRC:.c=}
 
-all: test
+all: test pro run #test pro
 
 -include ${DEP}
 
 test: ${OBJ}
 
-clean cl:
-	rm -f ${OBJ} ${DEP} test
+run: all
+	clear;./test
+
+proper pro:                                                                     
+	  rm -f  ${OBJ} ${DEP}
+
+clean cl: pro
+	rm -f  ${BIN}
 
 # END

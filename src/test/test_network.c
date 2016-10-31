@@ -76,7 +76,7 @@ void test_network_sgd()
 
   size_t iter = 500000;
 
-  sgd(nt, data, 4, iter, 4, 10.);
+  sgd(nt, data, 4, iter, 4, 10., 0.);
 
   test_network_output(nt, (double[]){ 0, 0 });
   test_network_output(nt, (double[]){ 1, 0 });
@@ -126,7 +126,7 @@ void test_network_failure_rate(unsigned epochs)
     int epoch_failed = 0;
     double a, b, c, d;
   	network* nt = create_network(sizes, 3);
-    sgd(nt, data, 4, 10000, 4, 10.);
+    sgd(nt, data, 4, 10000, 4, 10., 0.);
     feedforward(nt, (double[]){ 0, 0 }, activations);
     a = activations[0];
     feedforward(nt, (double[]){ 1, 0 }, activations);
@@ -182,7 +182,7 @@ void perf_xor(unsigned epochs)
   for (size_t i = 0; i < epochs; ++i)
   {
     network* nt = create_network(sizes, 3);
-    sgd(nt, data, 4, 1000, 4, 10.);
+    sgd(nt, data, 4, 1000, 4, 10., 0.);
     free_network(nt);
   }
 
