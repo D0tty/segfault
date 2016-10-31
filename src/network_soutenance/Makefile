@@ -2,7 +2,7 @@
 CC=gcc
 
 CPPFLAGS= `pkg-config --cflags sdl`
-CFLAGS= -Wall -Wextra -Werror -std=c99
+CFLAGS= -Wall -Wextra -Werror -std=c99 -O2
 LDFLAGS=
 LDLIBS= `pkg-config --libs sdl` -lSDL -lSDL_image -lm
 
@@ -18,6 +18,6 @@ all: sout
 sout: ${OBJ}
 
 clean cl:
-	rm -f ${OBJ} ${DEP} main
+	rm -f ${OBJ} ${DEP} sout
 
 # END

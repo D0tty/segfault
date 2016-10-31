@@ -53,7 +53,8 @@ void test_network_output(network* nt, double* input)
 
 void test_network_sgd()
 {
-  size_t sizes[] = { 2, 100, 1 };
+  srand(time(NULL));
+  size_t sizes[] = { 2, 20, 1 };
   network* nt = create_network(sizes, 3);
 
   training_datum* datum1 = create_training_datum(
@@ -74,11 +75,9 @@ void test_network_sgd()
   );
   training_datum* data[] = { datum1, datum2, datum3, datum4 };
 
-  size_t iter = 100000;
+  size_t iter = 5000;
 
   sgd(nt, data, 4, iter, 4, 10., 0.);
-
-  print_network(nt,1);
 
   test_network_output(nt, (double[]){ 0, 0 });
   test_network_output(nt, (double[]){ 1, 0 });
