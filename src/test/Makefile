@@ -1,4 +1,5 @@
-CC=clang
+#CC=clang
+CC=gcc
 
 CPPFLAGS= `pkg-config --cflags sdl`
 CFLAGS= -Wall -Wextra -Werror -std=c99 -ggdb
