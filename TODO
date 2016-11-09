@@ -1,1 +1,13 @@
-* we'll need tests to show for the presentation (make test)
+* rework the NN fonction that load, create, init
+* create tests and easy way to create datum
+* softmax of the output of the NN
+* select the set of chars to rocognise ([a-z][A-Z][0-9][.,-_!@#$%^&*(){}[]])
+      * accents ?
+* create convertion table from output->sotmax->alpha
+
+* set a normal size of char then -> * create a normalisation of size fonction
+* huge work on the segmentation fonction
+
+* gtk will help for testing / debuging, might be able to display graphs/imgs
+      * use glade: http://franckh.developpez.com/tutoriels/gtk/gtkbuilder/
+      * use glade again: https://glade.gnome.org/
