@@ -20,6 +20,9 @@ all: gtk
 
 gtk: ${OBJ}
 
+test:
+	./gtk
+
 degub gdb:
 	gdb gtk -q
 
