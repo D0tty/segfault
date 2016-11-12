@@ -14,8 +14,8 @@ int main(int argc, char *argv[])
     /* Create new GtkBuilder object */
     builder = gtk_builder_new();
     /* Load UI from file. If error occurs, report it and quit application.
-     * Replace "tut.glade" with your saved project. */
-    if( ! gtk_builder_add_from_file( builder, "tut.glade", &error ) )
+     * Replace "test.glade" with your saved project. */
+    if( ! gtk_builder_add_from_file( builder, "test.glade", &error ) )
     {
         g_warning( "%s", error->message );
         g_free( error );
