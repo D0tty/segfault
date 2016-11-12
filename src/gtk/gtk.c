@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <gtk/gtk.h>
-#include <glib/gi18n.h>
 
 int main(int argc, char *argv[])
 {
@@ -16,7 +15,7 @@ int main(int argc, char *argv[])
     builder = gtk_builder_new();
     /* Load UI from file. If error occurs, report it and quit application.
      * Replace "tut.glade" with your saved project. */
-    if( ! gtk_builder_add_from_file( builder, "test.glade", &error ) )
+    if( ! gtk_builder_add_from_file( builder, "tut.glade", &error ) )
     {
         g_warning( "%s", error->message );
         g_free( error );
