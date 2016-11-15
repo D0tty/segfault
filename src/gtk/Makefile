@@ -21,6 +21,9 @@ all: gtk
 
 gtk: ${OBJ}
 
+test_callback:
+	$(CC) $(CFLAGS) `pkg-config --cflags gtk+-3.0 gmodule-2.0` -o test_callback test_callback.c $(LDLIBS)
+
 test:
 	./gtk
 
@@ -31,7 +34,7 @@ valgrind valg:
 	valgrind ./gtk
 
 proper pro:
-	rm -f  ${OBJ} ${DEP}
+	rm -f  ${OBJ} ${DEP} test_callback
 
 clean cl: proper
 	rm -f *~ ${BIN}
