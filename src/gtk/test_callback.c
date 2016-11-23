@@ -7,6 +7,16 @@ void kaczka (GtkToggleButton *tbutton, gpointer data)
   gtk_main_quit ();
 }
 
+GtkBuilder* get_build()
+{
+  static GtkBuilder* build = NULL;
+  if ( !build )
+  {
+    build = gtk_builder_new();
+  }
+  return build;
+}
+
 void testit(GtkToggleButton *GTKButton, gpointer data)
 {
   printf("YOU DID IT !!!\n");
