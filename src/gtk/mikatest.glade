@@ -116,6 +116,7 @@ Result
                 <property name="margin_top">20</property>
                 <property name="margin_bottom">20</property>
                 <property name="title" translatable="yes">0. Load image</property>
+                <signal name="file-set" handler="ouvrir" object="image" swapped="no"/>
               </object>
               <packing>
                 <property name="left_attach">0</property>
