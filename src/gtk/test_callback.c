@@ -28,12 +28,19 @@ int main (int argc, char *argv[])
 {
   GtkWidget *win = NULL;
   GtkBuilder *builder;
+  GError *error = NULL;
 
   gtk_init (&argc, &argv);
 
 
-  builder=gtk_builder_new();
-  gtk_builder_add_from_file( builder, "test_callback.glade", NULL);
+  builder = gtk_builder_new();
+  
+  if(! gtk_builder_add_from_file( builder, "test_callback.glade", &error) )
+  {
+    g_warning( "%s", error->message );                                      
+    g_free( error );                                                        
+    return( 1 );    
+  }
 
   win=GTK_WIDGET(gtk_builder_get_object(builder,"window1"));
 
@@ -42,7 +49,7 @@ int main (int argc, char *argv[])
   g_object_unref( G_OBJECT( builder ) );
 
 
-  gtk_widget_show_all (win);
+  gtk_widget_show (win);
   gtk_main ();
-  return 0;
+  return ( 0 );
 }
