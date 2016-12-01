@@ -57,4 +57,10 @@ struct image* add_height(struct image *img, int dif);
 
 int space(struct image *img);
 
+int paragraph_compt(struct page *pg);
+
+int line_compt(struct paragraph *prgh);
+
+int char_compt(struct line *ln);
+
 #endif

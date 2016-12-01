@@ -8,6 +8,8 @@
 #include "img.h"
 #include "decoupage.h"
 
+#define TAILLE 28
+
 struct line* line_create(struct image *chr)
 {
   struct line *ln;
@@ -69,6 +71,41 @@ void page_free(struct page *pg)
     free(pg);
     pg = tmp;
   }
+}
+
+int paragraph_compt(struct page *pg)
+{
+  int compt = 0;
+  while(pg != NULL)
+  {
+    compt = compt + line_compt(pg->current_paragraph);
+    pg = pg->next_paragraph;
+    ++compt;
+  }
+  return compt;
+}
+
+int line_compt(struct paragraph *prgh)
+{
+  int compt = 0;
+  while(prgh != NULL)
+  {
+    compt = compt + char_compt(prgh->current_line);
+    prgh = prgh->next_line;
+    ++compt;
+  }
+  return compt;
+}
+
+int char_compt(struct line *ln)
+{
+  int compt = 0;
+  while(ln != NULL)
+  {
+    ln = ln->next_char;
+    ++compt;
+  }
+  return compt;  
 }
 
 struct page* image_to_page(struct image *img)
@@ -155,12 +192,12 @@ struct line* to_line(struct image *img, struct line *ligne, int l)
     img = lateral_cut(img);
     struct image *chr = first_char_in_line(img);
     img = image_get_rect(img, chr->w, 0, img->w - 1, img->h - 1);
-    chr = resizing(image_to_rect(chr), 28);
+    chr = resizing(image_to_rect(chr), TAILLE);
     if(is_space(img, l) == 1)
     {
       ligne = line_create(chr);
       struct image *esp = image_get_rect(img, 0, 0, l, img->h - 1);
-      esp = resizing(image_to_rect(esp), 28);
+      esp = resizing(image_to_rect(esp), TAILLE);
       ligne->next_char = line_create(esp);
       img = lateral_cut(img);
       ligne->next_char->next_char = to_line(img,ligne->next_char->next_char,l);
