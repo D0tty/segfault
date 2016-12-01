@@ -12,7 +12,7 @@
 char* get_buffer(size_t len)
 {
   static char *buf = NULL;
-  
+
   if ( len )
   {
     buf = realloc( buf, len * sizeof(char) );
@@ -35,14 +35,15 @@ int put_char(char c)
 
   buf[index++] = c; //put the char increase index
 
-  return index >= len ? 1 : 0; //ternary to ensure 0 or 1 values 
+  return index >= len ? 1 : 0; //ternary to ensure 0 or 1 values
 }
 
-void img_to_buff(/*pointeur sur network, */ struct page *pg)
+void img_to_buff(network *nt, struct page *pg)
 {
   size_t len = paragraph_compt(pg, 1);
   char *buffer = get_buffer(len);
   char car = NULL;
+  (nt++)--; //TODO //just to use it to avoid warnings
 
   while(pg != NULL)
   {
