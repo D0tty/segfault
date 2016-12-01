@@ -6,16 +6,16 @@
 # include "../nn/network.h"
 
 /*
- * if size == 0 return a pointer to the buffer, NULL if buffer not init
- * if size != 0 realloc the buffer (no dada ereased and can increase size
+ * if len == 0 return a pointer to the buffer, NULL if buffer not init
+ * if len != 0 realloc the buffer (no dada ereased and can increase len
  */
-char* get_buffer(size_t size)
+char* get_buffer(size_t len)
 {
   static char *buf = NULL;
   
-  if ( size )
+  if ( len )
   {
-    buf = realloc( buf, size);
+    buf = realloc( buf, len * sizeof(char) );
   }
 
   return buf;
