@@ -18,6 +18,7 @@ void test_network_feedforward()
 {
   size_t sizes[] = { 2, 2 };
 	network* nt = create_network(sizes, 2);
+  small_weights_init(nt);
   double** w = nt->weights;
   double** b = nt->biases;
   double input[] = { 0.3, 0.6 };
@@ -53,8 +54,9 @@ void test_network_output(network* nt, double* input)
 
 void test_network_sgd()
 {
-  size_t sizes[] = { 2, 100, 1 };
+  size_t sizes[] = { 2, 2, 1 };
   network* nt = create_network(sizes, 3);
+  small_weights_init(nt);
 
   training_datum* datum1 = create_training_datum(
     (double[]){ 0, 0 },
@@ -76,7 +78,7 @@ void test_network_sgd()
 
   size_t iter = 100000;
 
-  sgd(nt, data, 4, iter, 4, 10., 0.);
+  sgd(nt, data, 4, iter, 4, 0.01, 0.);
 
   test_network_output(nt, (double[]){ 0, 0 });
   test_network_output(nt, (double[]){ 1, 0 });
@@ -87,6 +89,8 @@ void test_network_sgd()
   //save_network(nt, saveto);
 
   //printf("Network saved to: %s", saveto);
+  print_network(nt, 1);
+
 
   free_network(nt);
   free(datum1);
@@ -126,6 +130,7 @@ void test_network_failure_rate(unsigned epochs)
     int epoch_failed = 0;
     double a, b, c, d;
   	network* nt = create_network(sizes, 3);
+    small_weights_init(nt);
     sgd(nt, data, 4, 10000, 4, 10., 0.);
     feedforward(nt, (double[]){ 0, 0 }, activations);
     a = activations[0];
@@ -182,6 +187,7 @@ void perf_xor(unsigned epochs)
   for (size_t i = 0; i < epochs; ++i)
   {
     network* nt = create_network(sizes, 3);
+    small_weights_init(nt);
     sgd(nt, data, 4, 1000, 4, 10., 0.);
     free_network(nt);
   }

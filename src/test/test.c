@@ -10,7 +10,7 @@
 
 int main()
 {
-	test_vector();
+	// test_vector();
 	test_network();
 	return 0;
 }
