@@ -410,6 +410,20 @@ struct image* paragraph_to_image(struct paragraph *prg)
   return img;
 }
 
+struct image* resizing(struct image *img, int nt)
+{
+  int t = img->w;
+  struct image *resized = image_create(nt, nt);
+  for(int i = 0; i < nt; ++i)
+  {
+    for(int j = 0; j < nt; ++j)
+    {
+      image_pixel(resized, i, j) = image_pixel(img, (i*t)/nt, (j*t)/nt); 
+    }
+  }
+  return resized;
+}
+
 int main(int argc, char *argv[])
 {
   if(argc < 2)

@@ -74,6 +74,20 @@ network* create_network(size_t* sizes, size_t nb_layers)
     weights[i] = malloc(curr_size * next_size * sizeof (double));
     weights_grad[i] = malloc(curr_size * next_size * sizeof (double));
     weights_delta[i] = malloc(curr_size * next_size * sizeof (double));
+  }
+  nt->weights = weights;
+  nt->weights_grad = weights_grad;
+  nt->weights_delta = weights_delta;
+
+  return nt;
+}
+
+void small_weights_init(network* nt)
+{
+  for (size_t i = 0; i < nt->nb_layers - 1; i++)
+  {
+    size_t curr_size = nt->sizes[i];
+    size_t next_size = nt->sizes[i + 1];
     // Why use next_layer index before curr_layer?
     // See http://neuralnetworksanddeeplearning.com/chap1.html#mjx-eqn-22
     for (size_t j = 0; j < next_size; j++)
@@ -81,15 +95,10 @@ network* create_network(size_t* sizes, size_t nb_layers)
       for (size_t k = 0; k < curr_size; k++)
       {
         // Small weight initialization
-        weights[i][j * curr_size + k] = gaussrand() / sqrt(curr_size);
+        nt->weights[i][j * curr_size + k] = gaussrand() / sqrt(curr_size);
       }
     }
   }
-  nt->weights = weights;
-  nt->weights_grad = weights_grad;
-  nt->weights_delta = weights_delta;
-
-  return nt;
 }
 
 void free_network(network* nt)
@@ -369,150 +378,110 @@ void train(network* nt, training_datum** batch, size_t batch_length,
   }
 }
 
+double cross_entropy(double* expected, double* actual, size_t length)
+{
+  double sum = 0.;
+  for (size_t i = 0; i < length; ++i)
+  {
+    double y = expected[i];
+    double a = actual[i];
+    double res = -y * log(a) - (1 - y) * log(1 - a);
+    sum += isnan(res) ? 0. : res;
+  }
+  return sum;
+}
+
+double total_cost(network* nt, training_datum** training_data,
+                  size_t training_data_length, double weight_decay)
+{
+  double cost = 0.;
+  size_t activations_length = nt->sizes[nt->nb_layers - 1];
+  double* activations = malloc(activations_length * sizeof (double));
+  for (size_t i = 0; i < training_data_length; ++i)
+  {
+    training_datum* td = training_data[i];
+    feedforward(nt, td->input, activations);
+    cost += cross_entropy(td->output, activations, activations_length);
+  }
+  free(activations);
+  double sum = 0.;
+  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
+  {
+    size_t n = nt->sizes[i] * nt->sizes[i + 1];
+    for (size_t j = 0; j < n; j++)
+    {
+      sum += pow(nt->weights[i][j], 2);
+    }
+  }
+  cost += 0.5 * weight_decay * sum;
+  cost /= (double)training_data_length;
+  return cost;
+}
+
 // Stochastic gradient descent.
 void sgd(network* nt, training_datum** training_data,
          size_t training_data_length, unsigned long long epochs,
          size_t mini_batch_size, double learning_rate, double weight_decay)
 {
   training_datum** td = malloc(training_data_length * sizeof (training_datum*));
+  char nt_name[255];
   for (unsigned long long epoch = 0; epoch < epochs; epoch++)
   {
+    warnx("Epoch %llu/%llu", epoch, epochs);
     shuffle(td, training_data, training_data_length, sizeof (training_datum*));
     for (size_t i = 0; i < training_data_length; i += mini_batch_size)
     {
       train(nt, td + i, MIN(mini_batch_size, training_data_length - i),
             learning_rate, weight_decay, training_data_length);
     }
+    double cost = total_cost(nt, training_data, training_data_length,
+                             weight_decay);
+    warnx("Done, cost %f", cost);
+    sprintf(nt_name, "networks/epoch%llu.network", epoch);
+    warnx("Saving network to file: %s", nt_name);
+    network_save(nt, nt_name);
   }
   free(td);
 }
 
-void save_network(network* nt, char* file)
+void network_save(network* nt, char filename[])
 {
-  FILE *f = fopen(file, "w");
-  if (f == NULL)
+  FILE* fp = fopen(filename, "w");
+  fwrite(&nt->nb_layers, sizeof (size_t), 1, fp);
+  fwrite(nt->sizes, nt->nb_layers * sizeof (size_t), 1, fp);
+  for (size_t j = 0; j < nt->nb_layers - 1; ++j)
   {
-    printf("Error opening file!\n");
-    exit(1);
+    fwrite(nt->weights[j], nt->sizes[j] * nt->sizes[j + 1] * sizeof (double),
+           1, fp);
   }
-  //nt->nb_layers = nb_layers;
-  fprintf(f, "%lu\n", nt->nb_layers);
-  //nt->sizes = sizes;
-  for( size_t i = 0; i < nt->nb_layers; ++i)
+  for (size_t j = 0; j < nt->nb_layers - 1; ++j)
   {
-    fprintf(f, "%lu\n", nt->sizes[i]);
+    fwrite(nt->biases[j], nt->sizes[j + 1] * sizeof (double), 1, fp);
   }
-
-  // Beware! The first layer doesn't have biases. As such, the biases sizes
-  // at index 1 in the sizes list.
-  size_t biases_length = nt->nb_layers - 1;
-  //double** biases = malloc(biases_length * sizeof (double*));
-  for (size_t i = 0; i < biases_length; i++)
-  {
-    size_t size = nt->sizes[i + 1];
-    //biases[i] = malloc(size * sizeof (double));
-    for (size_t j = 0; j < size; j++)
-    {
-      fprintf(f, "%f\n", nt->biases[i][j]);
-    }
-  }
-  //nt->biases = biases;
-
-  // Wijk is the weight between the kth neuron in the ith layer and the jth
-  // neuron in the (i+1)th layer.
-  size_t weights_length = nt->nb_layers - 1;
-  //double** weights = malloc(weights_length * sizeof (double*));
-  for (size_t i = 0; i < weights_length; i++)
-  {
-    size_t next_size = nt->sizes[i + 1]; // Next layer size
-    size_t curr_size = nt->sizes[i]; // Current layer size
-    //weights[i] = malloc(curr_size * next_size * sizeof (double));
-    // Why use next_layer index before curr_layer?
-    // See http://neuralnetworksanddeeplearning.com/chap1.html#mjx-eqn-22
-    for (size_t j = 0; j < next_size; j++)
-    {
-      for (size_t k = 0; k < curr_size; k++)
-      {
-        //weights[i][j * curr_size + k] = gaussrand();
-        fprintf(f, "%f\n", nt->weights[i][j * curr_size + k]);
-      }
-    }
-  }
-  //nt->weights = weights;
-  fclose(f);
+  fclose(fp);
 }
 
-network* load_network(char *file)
+network* network_load(char filename[])
 {
-  char *f_line = NULL;
-  size_t f_line_len = 0;
-  size_t f_size_t_val = 0;
+  FILE* fp = fopen(filename, "r");
+  size_t nb_layers;
+  fread(&nb_layers, sizeof (size_t), 1, fp);
+  size_t* sizes = malloc(nb_layers * sizeof (size_t));
+  fread(sizes, nb_layers * sizeof (size_t), 1, fp);
 
-  FILE *f = fopen(file, "r");
-  if (f == NULL)
+  network* nt = create_network(sizes, nb_layers);
+
+  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
   {
-    printf("Error opening file!\n");
-    exit(1);
+    fread(nt->weights[i], nt->sizes[i] * nt->sizes[i + 1] * sizeof (double),
+          1, fp);
   }
 
-  network *nt;
-  nt = malloc(sizeof (network));
-
-  //get nb_layers
-  getline(&f_line, &f_line_len, f);
-  sscanf(f_line, "%zu", &f_size_t_val);
-  nt->nb_layers = f_size_t_val;
-  size_t nb_layers = nt->nb_layers;
-
-  nt->sizes = malloc( nt->nb_layers * sizeof(size_t) );
-  for( size_t i = 0; i < nb_layers; ++i)
+  for (size_t i = 0; i < nt->nb_layers - 1; ++i)
   {
-    getline(&f_line, &f_line_len, f);
-    sscanf(f_line, "%zu", &f_size_t_val);
-    nt->sizes[i] = f_size_t_val;
+    fread(nt->biases[i], nt->sizes[i + 1] * sizeof (double), 1, fp);
   }
 
-  // Beware! The first layer doesn't have biases. As such, the biases sizes
-  // at index 1 in the sizes list.
-  size_t biases_length = nb_layers - 1;
-  double** biases = malloc(biases_length * sizeof (double*));
-  for (size_t i = 0; i < biases_length; i++)
-  {
-    size_t size = nt->sizes[i + 1];
-    biases[i] = malloc(size * sizeof (double));
-    for (size_t j = 0; j < size; j++)
-    {
-      //biases[i][j] = gaussrand();
-      getline(&f_line, &f_line_len, f);
-      biases[i][j] = strtod(f_line,NULL);
-    }
-  }
-  nt->biases = biases;
-
-  // Wijk is the weight between the kth neuron in the ith layer and the jth
-  // neuron in the (i+1)th layer.
-  size_t weights_length = nb_layers - 1;
-  double** weights = malloc(weights_length * sizeof (double*));
-  for (size_t i = 0; i < weights_length; i++)
-  {
-    size_t curr_size = nt->sizes[i]; // Current layer size
-    size_t next_size = nt->sizes[i + 1]; // Next layer size
-    weights[i] = malloc(curr_size * next_size * sizeof (double));
-    // Why use next_layer index before curr_layer?
-    // See http://neuralnetworksanddeeplearning.com/chap1.html#mjx-eqn-22
-    for (size_t j = 0; j < next_size; j++)
-    {
-      for (size_t k = 0; k < curr_size; k++)
-      {
-        //weights[i][j * curr_size + k] = gaussrand();
-        getline(&f_line, &f_line_len, f);
-        weights[i][j * curr_size + k] = strtod(f_line,NULL);
-      }
-    }
-  }
-  nt->weights = weights;
-
-  fclose(f);
-
+  fclose(fp);
   return nt;
 }

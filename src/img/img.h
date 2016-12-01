@@ -56,4 +56,6 @@ struct image* lateral_cut(struct image *img);
 
 struct image* image_merge_vertical(struct image *img1, struct image *img2);
 
+struct image* resizing(struct image *img, int nt);
+
 #endif
