@@ -246,8 +246,18 @@ void print_usage()
 {
   printf("Usage:\n");
   printf("  train new <data_path> <output_path> <epochs> <hidden_layer_neurons>\n");
-  printf("  train continue <data_path> <output_path> <epochs> <path_to_network>\n");
-  printf("Note: make sure <output_path> is an existing directory.\n");
+  printf("  train continue <data_path> <output_path> <epochs> <path_to_network>\n\n");
+  printf("Note: make sure <output_path> is an existing directory.\n\n");
+  printf("Examples:\n");
+  printf("$ train new data networks 30 240\n");
+  printf("# Train a new network with 240 neurons in the hidden layer for 30 epochs.\n");
+  printf("# Load training data from ./data.\n");
+  printf("# Save each epoch as epochN.network in the ./networks directory.\n\n");
+  printf("$ train continue data networks2 60 networks/epoch29.network\n");
+  printf("# Continue training the network saved at networks/epoch29.network for 60 additional epochs.\n");
+  printf("# Load training data from ./data.\n");
+  printf("# Save each epoch as epochN.network in the ./networks2 directory.\n");
+
 }
 
 int main(int argc, char* argv[])
