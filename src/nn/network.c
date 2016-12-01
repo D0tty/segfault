@@ -441,6 +441,7 @@ void sgd(network* nt, training_datum** training_data,
     sprintf(nt_name, "%s/epoch%llu.network", output_path, epoch);
     warnx("Saving network to file: %s", nt_name);
     network_save(nt, nt_name);
+    warnx("Saved");
   }
   free(td);
 }
