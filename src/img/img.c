@@ -410,6 +410,20 @@ struct image* paragraph_to_image(struct paragraph *prg)
   return img;
 }
 
+struct image* resizing(struct image *img, int nt)
+{
+  int t = img->w;
+  struct image *resized = image_create(nt, nt);
+  for(int i = 0; i < nt; ++i)
+  {
+    for(int j = 0; j < nt; ++j)
+    {
+      image_pixel(resized, i, j) = image_pixel(img, (i*t)/nt, (j*t)/nt); 
+    }
+  }
+  return resized;
+}
+
 int main(int argc, char *argv[])
 {
   if(argc < 2)
@@ -440,13 +454,13 @@ int main(int argc, char *argv[])
   struct image *i = first_line_in_paragraph(img);
   int lh = i->h;
 
-  //struct image *laligne;
-  //SDL_Surface* sdllaligne;
+  struct image *laligne;
+  SDL_Surface* sdllaligne;
 
 
   struct page *pg = NULL;
   pg = to_page(img, pg, lh);
-  /*while(pg != NULL)
+  while(pg != NULL)
   {
     struct paragraph *prg = pg->current_paragraph;
     display_image(to_sdl_image(paragraph_to_image(prg)));
@@ -464,23 +478,15 @@ int main(int argc, char *argv[])
       prg = prg->next_line;
     }
     pg = pg->next_paragraph;
-  }*/
-  struct paragraph *prg = pg->current_paragraph;
-  struct line *lg = prg->current_line;
-  while(lg != NULL)                                                            
-      {                                                                            
-        display_image(to_sdl_image(lg->current_char));    
-        display_image(to_sdl_image(image_to_rect(lg->current_char)));        
-        lg = lg->next_char;                                                        
-      }
+  }
 
   image_free(i);
   page_free(pg);
-  //image_free(laligne);
+  image_free(laligne);
 
   /* free  */
   SDL_FreeSurface(sdlimg);
-  //SDL_FreeSurface(sdllaligne);
+  SDL_FreeSurface(sdllaligne);
   // if you try to free img after free ln which contains img in segfaults
   // image_free(img);
   SDL_Quit();

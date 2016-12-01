@@ -155,10 +155,12 @@ struct line* to_line(struct image *img, struct line *ligne, int l)
     img = lateral_cut(img);
     struct image *chr = first_char_in_line(img);
     img = image_get_rect(img, chr->w, 0, img->w - 1, img->h - 1);
+    chr = resizing(image_to_rect(chr), 28);
     if(is_space(img, l) == 1)
     {
       ligne = line_create(chr);
       struct image *esp = image_get_rect(img, 0, 0, l, img->h - 1);
+      esp = resizing(image_to_rect(esp), 28);
       ligne->next_char = line_create(esp);
       img = lateral_cut(img);
       ligne->next_char->next_char = to_line(img,ligne->next_char->next_char,l);
