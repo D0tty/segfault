@@ -8,6 +8,8 @@
 #include "img.h"
 #include "decoupage.h"
 
+#define THRESHOLD 150
+
 void wait_for_keypressed(void)
 {
   SDL_Event             event;
@@ -117,7 +119,7 @@ SDL_Surface* tograyscale(SDL_Surface* img)
 
 SDL_Surface* tobinary(SDL_Surface* img)
 {
-  Uint8 threshold = 150;
+  Uint8 threshold = THRESHOLD;
   for ( int x = 0; x < img->w; ++x )
   {
     for ( int y = 0; y < img->h; ++y )
