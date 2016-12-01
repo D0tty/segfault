@@ -36,4 +36,30 @@ int put_char(char c)
   buf[index++] = c; //put the char increase index
 
   return index >= len ? 1 : 0; //ternary to ensure 0 or 1 values 
+}
 
+void img_to_buff(/*pointeur sur network, */ struct page *pg)
+{
+  size_t len = paragraph_compt(pg, 1);
+  char *buffer = get_buffer(len);
+  char car = NULL;
+
+  while(pg != NULL)
+  {
+    struct paragraph prg = pg->current_paragraph;
+    while(prg != NULL)
+    {
+      struct line *ln = prg->current_line;
+      while(ln != NULL)
+      {
+        /*car = appel du NN sur ln->current_char;*/
+        put_char(car);
+        ln = ln->next_char;
+      }
+      put_char('\n');
+      prg = prg->next_line;
+    }
+    put_char('\t');
+    pg = pg->next_paragraph;
+  }
+}
