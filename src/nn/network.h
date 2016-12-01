@@ -36,8 +36,10 @@ void sgd(network* nt, training_datum** training_data,
 
 void print_grad_net(network* nt);
 
-void save_network(network* nt, char* file);
+void network_save(network* nt, char filename[]);
 
-network* load_network(char *file);
+network* network_load(char filename[]);
+
+void small_weights_init(network* nt);
 
 #endif

@@ -6,18 +6,16 @@ CFLAGS= -Wall -Wextra -Werror -std=c99 -ggdb
 LDFLAGS=
 LDLIBS= `pkg-config --libs sdl` -lSDL_image -lm
 
-SRC= ../util/shuffle.c ../util/gaussrand.c ../util/vector.c ../util/debug.c \
-		 network.c main.c
+SRC= ../util/vector.c ../util/gaussrand.c ../util/shuffle.c ../nn/network.c \
+		 ../util/debug.c train.c
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
+BIN= ${SRC:.c=}
 
-all: main
+all: train
 
 -include ${DEP}
 
-main: ${OBJ}
-
-clean cl:
-	rm -f ${OBJ} ${DEP} main
+train: ${OBJ}
 
 # END
