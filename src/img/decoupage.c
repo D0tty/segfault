@@ -73,21 +73,29 @@ void page_free(struct page *pg)
   }
 }
 
-int paragraph_compt(struct page *pg)
+/*
+ * count if bool (0,1)
+ * if count, compute the sum of needed chars
+ * else return the value
+ */
+size_t paragraph_compt(struct page *pg, int count)
 {
-  int compt = 0;
-  while(pg != NULL)
+  static size_t compt = 0;
+  if ( count )
   {
-    compt = compt + line_compt(pg->current_paragraph);
-    pg = pg->next_paragraph;
-    ++compt;
+    while(pg != NULL)
+    {
+      compt = compt + line_compt(pg->current_paragraph);
+      pg = pg->next_paragraph;
+      ++compt;
+    }
   }
   return compt;
 }
 
-int line_compt(struct paragraph *prgh)
+size_t line_compt(struct paragraph *prgh)
 {
-  int compt = 0;
+  size_t compt = 0;
   while(prgh != NULL)
   {
     compt = compt + char_compt(prgh->current_line);
@@ -97,15 +105,15 @@ int line_compt(struct paragraph *prgh)
   return compt;
 }
 
-int char_compt(struct line *ln)
+size_t char_compt(struct line *ln)
 {
-  int compt = 0;
+  size_t compt = 0;
   while(ln != NULL)
   {
     ln = ln->next_char;
     ++compt;
   }
-  return compt;  
+  return compt;
 }
 
 struct page* image_to_page(struct image *img)
@@ -174,7 +182,7 @@ struct paragraph* to_paragraph(struct image *img, struct paragraph *prgph)
 
     prgph->next_line = to_paragraph(img, prgph->next_line);
 
-    image_free(ligne);   
+    image_free(ligne);
     image_free(space);
     return prgph;
   }
@@ -300,12 +308,12 @@ struct image* add_height(struct image *img, int dif)
 struct image* add_width(struct image *img, int dif)
 {
   int notEven = (dif % 2 == 0) ? 0 : 1;
-  dif = dif/2;                                            
-  struct image *left = image_create(dif, img->h),              
-               *right = image_create(dif + notEven, img->h);  
-  img = image_merge(left, img);                                           
-  img = image_merge(img, right);                                            
-  return img;  
+  dif = dif/2;
+  struct image *left = image_create(dif, img->h),
+               *right = image_create(dif + notEven, img->h);
+  img = image_merge(left, img);
+  img = image_merge(img, right);
+  return img;
 }
 
 int space(struct image *img)
@@ -314,7 +322,7 @@ int space(struct image *img)
       i = 0;
   while(i < w && is_column_blank(img, i))
   {
-    ++i;    
+    ++i;
   }
   return (i == w) ? 1 : 0;
 }
