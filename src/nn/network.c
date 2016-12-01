@@ -421,7 +421,8 @@ double total_cost(network* nt, training_datum** training_data,
 // Stochastic gradient descent.
 void sgd(network* nt, training_datum** training_data,
          size_t training_data_length, unsigned long long epochs,
-         size_t mini_batch_size, double learning_rate, double weight_decay)
+         size_t mini_batch_size, double learning_rate, double weight_decay,
+         char output_path[])
 {
   training_datum** td = malloc(training_data_length * sizeof (training_datum*));
   char nt_name[255];
@@ -437,7 +438,7 @@ void sgd(network* nt, training_datum** training_data,
     double cost = total_cost(nt, training_data, training_data_length,
                              weight_decay);
     warnx("Done, cost %f", cost);
-    sprintf(nt_name, "networks/epoch%llu.network", epoch);
+    sprintf(nt_name, "%s/epoch%llu.network", output_path, epoch);
     warnx("Saving network to file: %s", nt_name);
     network_save(nt, nt_name);
   }
