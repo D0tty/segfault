@@ -8,13 +8,13 @@ CFLAGS= -Wall -std=c99 -ggdb
 LDFLAGS=
 LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0`
 
-SRC= gtk.c
+SRC= mikatest.c
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
 BIN= ${SRC:.c=}
 
 #all: gtkpxe gtk
-all: gtk
+all: mikatest
 	make pro
 
 -include ${DEP}
@@ -34,7 +34,7 @@ valgrind valg:
 	valgrind ./gtk
 
 proper pro:
-	rm -f  ${OBJ} ${DEP} test_callback
+	rm -f  ${OBJ} ${DEP}
 
 clean cl: proper
 	rm -f *~ ${BIN}
