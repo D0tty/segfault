@@ -424,20 +424,22 @@ void sgd(network* nt, training_datum** training_data,
          size_t mini_batch_size, double learning_rate, double weight_decay)
 {
   training_datum** td = malloc(training_data_length * sizeof (training_datum*));
+  char nt_name[255];
   for (unsigned long long epoch = 0; epoch < epochs; epoch++)
   {
+    warnx("Epoch %llu/%llu", epoch, epochs);
     shuffle(td, training_data, training_data_length, sizeof (training_datum*));
     for (size_t i = 0; i < training_data_length; i += mini_batch_size)
     {
       train(nt, td + i, MIN(mini_batch_size, training_data_length - i),
             learning_rate, weight_decay, training_data_length);
     }
-    // double cost = total_cost(nt, training_data, training_data_length,
-    //                          weight_decay);
-    // if (epoch % (epochs / 1000) == 0)
-    // {
-    //   printf("%llu;%.20f\n", epoch, cost);
-    // }
+    double cost = total_cost(nt, training_data, training_data_length,
+                             weight_decay);
+    warnx("Done, cost %f", cost);
+    sprintf(nt_name, "networks/epoch%llu.network", epoch);
+    warnx("Saving network to file: %s", nt_name);
+    network_save(nt, nt_name);
   }
   free(td);
 }
@@ -447,12 +449,12 @@ void network_save(network* nt, char filename[])
   FILE* fp = fopen(filename, "w");
   fwrite(&nt->nb_layers, sizeof (size_t), 1, fp);
   fwrite(nt->sizes, nt->nb_layers * sizeof (size_t), 1, fp);
-  for (size_t j = 0; j < nt->nb_layers; ++j)
+  for (size_t j = 0; j < nt->nb_layers - 1; ++j)
   {
     fwrite(nt->weights[j], nt->sizes[j] * nt->sizes[j + 1] * sizeof (double),
            1, fp);
   }
-  for (size_t j = 0; j < nt->nb_layers; ++j)
+  for (size_t j = 0; j < nt->nb_layers - 1; ++j)
   {
     fwrite(nt->biases[j], nt->sizes[j + 1] * sizeof (double), 1, fp);
   }

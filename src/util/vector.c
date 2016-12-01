@@ -65,7 +65,7 @@ void dot_it(double* dst, double* a, double* b, size_t h_a, size_t w_a_h_b, size_
       double res = 0;
       for (size_t k = 0; k < w_a_h_b; ++k)
       {
-        res += a[i * w_a_h_b + k] * b[j * w_b + k];
+        res += a[i * w_a_h_b + k] * b[j * w_a_h_b + k];
       }
       dst[i * w_b + j] = res;
     }
@@ -82,7 +82,7 @@ void dot_ti(double* dst, double* a, double* b, size_t h_a, size_t w_a_h_b, size_
       double res = 0;
       for (size_t k = 0; k < w_a_h_b; ++k)
       {
-        res += a[k * w_a_h_b + i] * b[k * w_b + j];
+        res += a[k * h_a + i] * b[k * w_b + j];
       }
       dst[i * w_b + j] = res;
     }
