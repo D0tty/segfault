@@ -3,6 +3,7 @@
 #include <math.h>
 #include <string.h>
 #include <err.h>
+#include <time.h>
 #include "../util/gaussrand.h"
 #include "../util/vector.h"
 #include "../util/debug.h"
@@ -422,12 +423,18 @@ double total_cost(network* nt, training_datum** training_data,
 void sgd(network* nt, training_datum** training_data,
          size_t training_data_length, unsigned long long epochs,
          size_t mini_batch_size, double learning_rate, double weight_decay,
-         char output_path[])
+         char output_path[], char output_csv[])
 {
+  FILE* fp = fopen(output_csv, "w");
+  fprintf(fp, "Epoch;Cost;Time\n");
   training_datum** td = malloc(training_data_length * sizeof (training_datum*));
   char nt_name[255];
   for (unsigned long long epoch = 0; epoch < epochs; epoch++)
   {
+    struct timespec tstart;
+    struct timespec tend;
+    clock_gettime(CLOCK_MONOTONIC, &tstart);
+
     warnx("Epoch %llu/%llu", epoch, epochs);
     shuffle(td, training_data, training_data_length, sizeof (training_datum*));
     for (size_t i = 0; i < training_data_length; i += mini_batch_size)
@@ -435,8 +442,16 @@ void sgd(network* nt, training_datum** training_data,
       train(nt, td + i, MIN(mini_batch_size, training_data_length - i),
             learning_rate, weight_decay, training_data_length);
     }
+
+    clock_gettime(CLOCK_MONOTONIC, &tend);
+
     double cost = total_cost(nt, training_data, training_data_length,
                              weight_decay);
+
+    fprintf(fp, "%llu;%f;%.5f\n", epoch, cost,
+           ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) -
+           ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec));
+
     warnx("Done, cost %f", cost);
     sprintf(nt_name, "%s/epoch%llu.network", output_path, epoch);
     warnx("Saving network to file: %s", nt_name);
@@ -444,6 +459,7 @@ void sgd(network* nt, training_datum** training_data,
     warnx("Saved");
   }
   free(td);
+  fclose(fp);
 }
 
 void network_save(network* nt, char filename[])

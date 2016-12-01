@@ -194,7 +194,7 @@ void free_training_data(training_datum** training_data,
   free(training_data);
 }
 
-void test_train(char data_path[], char output_path[],
+void test_train(char data_path[], char output_path[], char output_csv[],
                 unsigned long long epochs, size_t hidden_layer)
 {
   training_datum** training_data;
@@ -211,7 +211,7 @@ void test_train(char data_path[], char output_path[],
   small_weights_init(nt);
 
   sgd(nt, training_data, training_data_length, epochs, 10, .05, 0.,
-      output_path);
+      output_path, output_csv);
 
   warnx("Freeing network");
   free_network(nt);
@@ -221,7 +221,8 @@ void test_train(char data_path[], char output_path[],
 }
 
 void test_continue_train(char data_path[], char output_path[],
-                         unsigned long long epochs, char filename[])
+                         char output_csv[], unsigned long long epochs,
+                         char filename[])
 {
   training_datum** training_data;
   size_t training_data_length;
@@ -233,7 +234,7 @@ void test_continue_train(char data_path[], char output_path[],
   network* nt = network_load(filename);
 
   sgd(nt, training_data, training_data_length, epochs, 10, .05, 0.,
-      output_path);
+      output_path, output_csv);
 
   warnx("Freeing network");
   free_network(nt);
@@ -245,15 +246,15 @@ void test_continue_train(char data_path[], char output_path[],
 void print_usage()
 {
   printf("Usage:\n");
-  printf("  train new <data_path> <output_path> <epochs> <hidden_layer_neurons>\n");
-  printf("  train continue <data_path> <output_path> <epochs> <path_to_network>\n\n");
-  printf("Note: make sure <output_path> is an existing directory.\n\n");
+  printf("  train new <data_path> <output_path> <output_csv> <epochs> <hidden_layer_neurons>\n");
+  printf("  train continue <data_path> <output_path> <output_csv> <epochs> <path_to_network>\n\n");
+  printf("Note: train does not create directories. The command will fail if output_path or output_csv point to non-existent directories.\n\n");
   printf("Examples:\n");
-  printf("$ train new data networks 30 240\n");
+  printf("$ train new data networks stats.csv 30 240\n");
   printf("# Train a new network with 240 neurons in the hidden layer for 30 epochs.\n");
   printf("# Load training data from ./data.\n");
   printf("# Save each epoch as epochN.network in the ./networks directory.\n\n");
-  printf("$ train continue data networks2 60 networks/epoch29.network\n");
+  printf("$ train continue data networks2 stats.csv  60 networks/epoch29.network\n");
   printf("# Continue training the network saved at networks/epoch29.network for 60 additional epochs.\n");
   printf("# Load training data from ./data.\n");
   printf("# Save each epoch as epochN.network in the ./networks2 directory.\n");
@@ -272,17 +273,18 @@ int main(int argc, char* argv[])
     char* cmd = argv[1];
     char* data_path = argv[2];
     char* output_path = argv[3];
+    char* output_csv = argv[4];
     unsigned long long epochs;
-    sscanf(argv[4], "%llu", &epochs);
+    sscanf(argv[5], "%llu", &epochs);
     if (strcmp(cmd, "new") == 0)
     {
       size_t hidden_layer;
-      sscanf(argv[5], "%zu", &hidden_layer);
-      test_train(data_path, output_path, epochs, hidden_layer);
+      sscanf(argv[6], "%zu", &hidden_layer);
+      test_train(data_path, output_path, output_csv, epochs, hidden_layer);
     }
     else if (strcmp(cmd, "continue") == 0)
     {
-      test_continue_train(data_path, output_path, epochs, argv[5]);
+      test_continue_train(data_path, output_path, output_csv, epochs, argv[6]);
     }
     else
     {

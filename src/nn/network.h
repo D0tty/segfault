@@ -33,7 +33,7 @@ double sigmoid(double z);
 void sgd(network* nt, training_datum** training_data,
          size_t training_data_length, unsigned long long epochs,
          size_t mini_batch_size, double eta, double weight_decay,
-         char output_path[]);
+         char output_path[], char output_csv[]);
 
 void print_grad_net(network* nt);
 
