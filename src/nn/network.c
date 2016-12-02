@@ -404,16 +404,32 @@ double cross_entropy(double* expected, double* actual, size_t length)
   return sum;
 }
 
-double total_cost(network* nt, training_datum** training_data,
-                  size_t training_data_length, double weight_decay)
+void total_cost_and_accuracy(network* nt, training_datum** training_data,
+                             size_t training_data_length, double weight_decay,
+                             double* cost_ptr, double* accuracy_ptr)
 {
   double cost = 0.;
+  int correct = 0;
   size_t activations_length = nt->sizes[nt->nb_layers - 1];
   double* activations = malloc(activations_length * sizeof (double));
   for (size_t i = 0; i < training_data_length; ++i)
   {
     training_datum* td = training_data[i];
     feedforward(nt, td->input, activations);
+    double max_activation = activations[0];
+    size_t max_activation_idx = 0;
+    for (size_t j = 1; j < activations_length; ++j)
+    {
+      if (activations[j] > max_activation)
+      {
+        max_activation = activations[j];
+        max_activation_idx = j;
+      }
+    }
+    if (td->output[max_activation_idx] == 1.)
+    {
+      ++correct;
+    }
     cost += cross_entropy(td->output, activations, activations_length);
   }
   free(activations);
@@ -428,7 +444,8 @@ double total_cost(network* nt, training_datum** training_data,
   }
   cost += 0.5 * weight_decay * sum;
   cost /= (double)training_data_length;
-  return cost;
+  *cost_ptr = cost;
+  *accuracy_ptr = (double)correct / (double)training_data_length;
 }
 
 // Stochastic gradient descent.
@@ -438,7 +455,7 @@ void sgd(network* nt, training_datum** training_data,
          char output_path[], char output_csv[])
 {
   FILE* fp = fopen(output_csv, "w");
-  fprintf(fp, "Epoch;Cost;Time\n");
+  fprintf(fp, "Epoch;Cost;Time;Accuracy\n");
   training_datum** td = malloc(training_data_length * sizeof (training_datum*));
   char nt_name[255];
   for (unsigned long long epoch = 0; epoch < epochs; epoch++)
@@ -457,14 +474,16 @@ void sgd(network* nt, training_datum** training_data,
 
     clock_gettime(CLOCK_MONOTONIC, &tend);
 
-    double cost = total_cost(nt, training_data, training_data_length,
-                             weight_decay);
+    double cost;
+    double accuracy;
+    total_cost_and_accuracy(nt, training_data, training_data_length,
+                            weight_decay, &cost, &accuracy);
 
-    fprintf(fp, "%llu;%f;%.5f\n", epoch, cost,
+    fprintf(fp, "%llu;%f;%.5f;%.5f\n", epoch, cost,
            ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) -
-           ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec));
+           ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec), accuracy);
 
-    warnx("Done, cost %f", cost);
+    warnx("Done, cost %.3f, accuracy %.1f%%", cost, accuracy * 100);
     sprintf(nt_name, "%s/epoch%llu.network", output_path, epoch);
     warnx("Saving network to file: %s", nt_name);
     network_save(nt, nt_name);
