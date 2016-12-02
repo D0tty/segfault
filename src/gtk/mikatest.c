@@ -8,26 +8,26 @@ void quit (GtkToggleButton *tbutton, gpointer data)
   gtk_main_quit ();
 }
 
-/*trouve le chemin*/ 
-/*gchar* load(gchar* path)                                                        
-{                                                                               
-  GtkWidget *dialog = gtk_file_chooser_dialog_new("Load image", NULL,           
-  GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,                               
-  GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);              
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)                
-  {                                                                             
-    path = gtk_file_chooser_get_preview_filename (                              
-    GTK_FILE_CHOOSER(dialog));                          
-    GdkPixbuf *pix = gdk_pixbuf_new_from_file (path, NULL);                     
-    pix = gdk_pixbuf_scale_simple (pix, 700, 850, GDK_INTERP_NEAREST);          
-    GtkWidget *image = gtk_image_new_from_pixbuf(pix);                          
-    GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);                       
-    gtk_window_set_title(GTK_WINDOW(win), path);                                
-    gtk_container_add(GTK_CONTAINER(win), image);                               
-    gtk_window_move(GTK_WINDOW(win), 500, 0);                                   
-    gtk_widget_show_all(win);                                                   
-  }                                                                           
-  gtk_widget_destroy (dialog);                                        
+/*trouve le chemin*/
+/*gchar* load(gchar* path)
+{
+  GtkWidget *dialog = gtk_file_chooser_dialog_new("Load image", NULL,
+  GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
+  GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+  if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
+  {
+    path = gtk_file_chooser_get_preview_filename (
+    GTK_FILE_CHOOSER(dialog));
+    GdkPixbuf *pix = gdk_pixbuf_new_from_file (path, NULL);
+    pix = gdk_pixbuf_scale_simple (pix, 700, 850, GDK_INTERP_NEAREST);
+    GtkWidget *image = gtk_image_new_from_pixbuf(pix);
+    GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(win), path);
+    gtk_container_add(GTK_CONTAINER(win), image);
+    gtk_window_move(GTK_WINDOW(win), 500, 0);
+    gtk_widget_show_all(win);
+  }
+  gtk_widget_destroy (dialog);
   return path;
 }*/
 
@@ -50,12 +50,12 @@ void charger (GtkWidget *dialog, GTK_IMAGE *img)
   GtkWidget *dialog;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
   gint res;
-      
-  dialog = dial; 
+
+  dialog = dial;
   dialog = gtk_file_chooser_dialog_new ("Open File",NULL,
       action,("_Cancel"),GTK_RESPONSE_CANCEL,("_Open"),
       GTK_RESPONSE_ACCEPT,NULL);
-          
+
   res = gtk_dialog_run (GTK_DIALOG (dialog));
   if (res == GTK_RESPONSE_ACCEPT)
   {
@@ -99,7 +99,7 @@ int main (int argc, char *argv[])
   gtk_builder_connect_signals (builder, NULL);
 
   MainWindow=GTK_WIDGET(gtk_builder_get_object(builder,"MainWindow"));
- 
+
 
   //gtk_builder_connect_signals( builder, NULL );
   g_object_unref( G_OBJECT( builder ) );
