@@ -306,6 +306,11 @@ int is_img_blank(struct image *img)
   return is_blank;
 }
 
+int is_space(struct image *img)
+{
+  return is_img_blank(img);
+}
+
 struct image* image_get_paragraph(struct image *img)
 {
   int x = 0,
