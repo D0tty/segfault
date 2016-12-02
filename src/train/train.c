@@ -9,7 +9,7 @@
 #include "../util/qsort.h"
 
 #define MAX_CHAR_CODE 1000
-#define INPUT_DIM 28
+#define INPUT_DIM 20
 #define INPUT_SIZE (size_t)(INPUT_DIM * INPUT_DIM)
 #define DATA "data"
 #define MAX_TRAINING_DATA 200000
@@ -49,7 +49,7 @@ void image_to_input(double* input, SDL_Surface* img)
     {
       Uint8 r, g, b;
       SDL_GetRGB(getpixel(img, x, y), img->format, &r, &g, &b);
-      input[y * img->w + x] = 1. - (double)r / 255.;
+      input[y * img->w + x] = .5 - (double)r / 255.;
     }
   }
 }
@@ -91,7 +91,7 @@ void debug_activations(double* activations, size_t activations_size)
 }
 
 void load_training_data(char data_path[], training_datum*** training_data_ptr,
-                        size_t* training_data_length_ptr,
+                        size_t* training_data_length_ptr, int** char_codes_ptr,
                         size_t* char_codes_length_ptr)
 {
   DIR *dir;
@@ -173,7 +173,18 @@ void load_training_data(char data_path[], training_datum*** training_data_ptr,
 
   *training_data_ptr = training_data;
   *training_data_length_ptr = training_data_length;
+  *char_codes_ptr = char_codes;
   *char_codes_length_ptr = char_codes_length;
+}
+
+void format_sizes(char output[], size_t* sizes, size_t nb_layers)
+{
+  int idx = 0;
+  for (size_t i = 0; i < nb_layers - 1; ++i)
+  {
+    idx += sprintf(output + idx, "%zu -> ", sizes[i]);
+  }
+  sprintf(output + idx, "%zu", sizes[nb_layers - 1]);
 }
 
 void free_training_data(training_datum** training_data,
@@ -195,18 +206,29 @@ void free_training_data(training_datum** training_data,
 }
 
 void test_train(char data_path[], char output_path[], char output_csv[],
-                unsigned long long epochs, size_t hidden_layer)
+                unsigned long long epochs, size_t* hidden_layers,
+                size_t hidden_layers_length)
 {
   training_datum** training_data;
   size_t training_data_length;
+  int* char_codes;
   size_t char_codes_length;
 
   load_training_data(data_path, &training_data, &training_data_length,
-                     &char_codes_length);
+                     &char_codes, &char_codes_length);
 
-  size_t sizes[] = { INPUT_SIZE, hidden_layer, char_codes_length };
-  warnx("Creating network with layers %zu -> %zu -> %zu", INPUT_SIZE,
-        hidden_layer, char_codes_length);
+  size_t nb_layers = 2 + hidden_layers_length;
+  size_t* sizes = malloc(nb_layers * sizeof (size_t));
+  sizes[0] = INPUT_SIZE;
+  sizes[nb_layers - 1] = char_codes_length;
+  for (size_t i = 0; i < hidden_layers_length; ++i)
+  {
+    sizes[1 + i] = hidden_layers[i];
+  }
+
+  char output[255];
+  format_sizes(output, sizes, nb_layers);
+  warnx("Creating network with layers %s", output);
   network* nt = create_network(sizes, 3);
   small_weights_init(nt);
 
@@ -218,6 +240,8 @@ void test_train(char data_path[], char output_path[], char output_csv[],
 
   warnx("Freeing training data");
   free_training_data(training_data, training_data_length);
+
+  free(char_codes);
 }
 
 void test_continue_train(char data_path[], char output_path[],
@@ -225,13 +249,17 @@ void test_continue_train(char data_path[], char output_path[],
                          char filename[])
 {
   training_datum** training_data;
+  int* char_codes;
   size_t training_data_length;
   size_t char_codes_length;
 
   load_training_data(data_path, &training_data, &training_data_length,
-                     &char_codes_length);
+                     &char_codes, &char_codes_length);
 
   network* nt = network_load(filename);
+  char output[255];
+  format_sizes(output, nt->sizes, nt->nb_layers);
+  warnx("Loaded network with layers %s", output);
 
   sgd(nt, training_data, training_data_length, epochs, 10, .05, 0.,
       output_path, output_csv);
@@ -241,54 +269,115 @@ void test_continue_train(char data_path[], char output_path[],
 
   warnx("Freeing training data");
   free_training_data(training_data, training_data_length);
+
+  free(char_codes);
+}
+
+void charcodes(char data_path[], char output_path[])
+{
+  training_datum** training_data;
+  int* char_codes;
+  size_t training_data_length;
+  size_t char_codes_length;
+
+  load_training_data(data_path, &training_data, &training_data_length,
+                     &char_codes, &char_codes_length);
+
+  FILE* fp = fopen(output_path, "w");
+  fwrite(char_codes, char_codes_length * sizeof (int), 1, fp);
+  fclose(fp);
+}
+
+void checkout_network(char network_path[])
+{
+  network* nt = network_load(network_path);
+  char output[255];
+  format_sizes(output, nt->sizes, nt->nb_layers);
+  warnx("This network has layers %s", output);
+
+  free_network(nt);
 }
 
 void print_usage()
 {
-  printf("Usage:\n");
-  printf("  train new <data_path> <output_path> <output_csv> <epochs> <hidden_layer_neurons>\n");
-  printf("  train continue <data_path> <output_path> <output_csv> <epochs> <path_to_network>\n\n");
-  printf("Note: train does not create directories. The command will fail if output_path or output_csv point to non-existent directories.\n\n");
-  printf("Examples:\n");
-  printf("$ train new data networks stats.csv 30 240\n");
-  printf("# Train a new network with 240 neurons in the hidden layer for 30 epochs.\n");
-  printf("# Load training data from ./data.\n");
-  printf("# Save each epoch as epochN.network in the ./networks directory.\n\n");
-  printf("$ train continue data networks2 stats.csv  60 networks/epoch29.network\n");
-  printf("# Continue training the network saved at networks/epoch29.network for 60 additional epochs.\n");
-  printf("# Load training data from ./data.\n");
-  printf("# Save each epoch as epochN.network in the ./networks2 directory.\n");
-
+  printf(
+    "Usage:\n"
+    "  train new <data_path> <output_path> <output_csv> <epochs> <hidden_layer_neurons>\n"
+    "  train continue <data_path> <output_path> <output_csv> <epochs> <path_to_network>\n"
+    "  train charcodes <data_path> <output_file>\n"
+    "  train checkout <network_path>\n"
+    "\n"
+    "Note: train does not create directories. The command will fail if output_path or output_csv point to non-existent directories.\n"
+    "\n"
+    "Examples:\n"
+    "$ train new data networks stats.csv 30 240\n"
+    "# Train a new network with 240 neurons in the hidden layer for 30 epochs.\n"
+    "# Load training data from ./data.\n"
+    "# Save each epoch as epochN.network in the ./networks directory.\n"
+    "\n"
+    "$ train continue data networks2 stats.csv  60 networks/epoch29.network\n"
+    "# Continue training the network saved at networks/epoch29.network for 60 additional epochs.\n"
+    "# Load training data from ./data.\n"
+    "# Save each epoch as epochN.network in the ./networks2 directory.\n"
+    "\n"
+    "$ train charcodes data codes.charcodes\n"
+    "# Create a map of output neuron index to the corresponding char code and save it to codes.charcodes.\n"
+    "\n"
+    "$ train checkout nt.network\n"
+    "# Print information about the network.\n"
+  );
 }
 
 int main(int argc, char* argv[])
 {
   srand(time(NULL));
-  if (argc < 6)
+
+  if (argc < 2)
   {
     print_usage();
   }
   else
   {
     char* cmd = argv[1];
-    char* data_path = argv[2];
-    char* output_path = argv[3];
-    char* output_csv = argv[4];
-    unsigned long long epochs;
-    sscanf(argv[5], "%llu", &epochs);
-    if (strcmp(cmd, "new") == 0)
+    if (strcmp(cmd, "checkout") == 0)
     {
-      size_t hidden_layer;
-      sscanf(argv[6], "%zu", &hidden_layer);
-      test_train(data_path, output_path, output_csv, epochs, hidden_layer);
-    }
-    else if (strcmp(cmd, "continue") == 0)
-    {
-      test_continue_train(data_path, output_path, output_csv, epochs, argv[6]);
+      char* network_path = argv[2];
+      checkout_network(network_path);
     }
     else
     {
-      print_usage();
+      char* data_path = argv[2];
+      char* output_path = argv[3];
+      if (strcmp(cmd, "charcodes") == 0)
+      {
+        charcodes(data_path, output_path);
+      }
+      else
+      {
+        char* output_csv = argv[4];
+        unsigned long long epochs;
+        sscanf(argv[5], "%llu", &epochs);
+        if (strcmp(cmd, "new") == 0)
+        {
+          size_t hidden_layers_length = argc - 6;
+          size_t* hidden_layers = malloc(hidden_layers_length * sizeof (size_t));
+          for (size_t i = 0; i < hidden_layers_length; ++i)
+          {
+            sscanf(argv[6 + i], "%zu", hidden_layers + i);
+          }
+          test_train(data_path, output_path, output_csv, epochs, hidden_layers,
+                     hidden_layers_length);
+          free(hidden_layers);
+        }
+        else if (strcmp(cmd, "continue") == 0)
+        {
+          test_continue_train(data_path, output_path, output_csv, epochs, argv[6]);
+        }
+        else
+        {
+          print_usage();
+        }
+      }
     }
   }
   return 0;
