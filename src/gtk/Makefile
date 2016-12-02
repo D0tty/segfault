@@ -3,12 +3,12 @@
 #CC=clang
 CC=gcc
 
-CPPFLAGS= `pkg-config --cflags gtk+-3.0 gmodule-2.0`
+CPPFLAGS= `pkg-config --cflags gtk+-3.0 gmodule-2.0 --cflags sdl`
 CFLAGS= -Wall -std=c99 -ggdb
 LDFLAGS=
-LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0`
+LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0` -lSDL_image
 
-SRC= mikatest.c
+SRC= mikatest.c img.c
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
 BIN= ${SRC:.c=}

@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #include <gtk/gtk.h>
+#include "../img/img.h"
+
+char* chemin;
+
 
 //quit
 void quit (GtkToggleButton *tbutton, gpointer data)
@@ -8,6 +14,8 @@ void quit (GtkToggleButton *tbutton, gpointer data)
   gtk_main_quit ();
 }
 
+<<<<<<< HEAD
+=======
 /*trouve le chemin*/
 /*gchar* load(gchar* path)
 {
@@ -30,23 +38,36 @@ void quit (GtkToggleButton *tbutton, gpointer data)
   gtk_widget_destroy (dialog);
   return path;
 }*/
+>>>>>>> 10a41bf85a6205aa91dc25e8242075da1c48d2ff
 
 //ouvrir le dialogue
 void ouvrir(GtkWidget *button, GtkWidget *imgbox)
 {
   char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(button));
+  chemin = filename;
   gtk_image_set_from_file(GTK_IMAGE(imgbox), filename);
 }
+
+void grey(GtkWidget *button, GtkWidget *imgbox)
+{
+  init_sdl();
+  SDL_Surface *img = load_image(chemin);
+  img = tograyscale(img);
+  SDL_SaveBMP(img, "new_img_grey");
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");
+  remove("new_img_grey");
+  free(img);
+}
+
 /*
-void charger (GtkWidget *dialog, GTK_IMAGE *img)
+void save (GtkWidget *button, GtkWidget *imgbox)
 {
-
-
-}*/
-
-//choisir l'image
-/*void choose(GtkWidget *button ,GtkWidget *dial)
-{
+<<<<<<< HEAD
+  //chooser = GTK_FILE_CHOOSER (dialog);
+  
+  char* path = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(button));
+  SDL_SaveBMP(imgbox,path);
+=======
   GtkWidget *dialog;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
   gint res;
@@ -67,6 +88,7 @@ void charger (GtkWidget *dialog, GTK_IMAGE *img)
     g_free (filename);
   }
   gtk_widget_destroy (dialog);
+>>>>>>> 10a41bf85a6205aa91dc25e8242075da1c48d2ff
 }*/
 
 GtkBuilder* get_build()
@@ -78,12 +100,6 @@ GtkBuilder* get_build()
   }
   return build;
 }
-/*
-void testit(GtkToggleButton *GTKButton, gpointer data)
-{
-  printf("YOU DID IT !!!\n");
-  gtk_main_quit();
-}*/
 
 int main (int argc, char *argv[])
 {
