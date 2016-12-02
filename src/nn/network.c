@@ -343,17 +343,29 @@ void train(network* nt, training_datum** batch, size_t batch_length,
            double learning_rate, double weight_decay, size_t td_length)
 {
   size_t nb_inter = nt->nb_layers - 1;
+  for (size_t i = 0; i < nb_inter; ++i)
+  {
+    for (size_t j = 0; j < nt->sizes[i + 1]; ++j)
+    {
+      nt->biases_grad[i][j] = 0.;
+
+      for (size_t k = 0; k < nt->sizes[i]; ++k)
+      {
+        nt->weights_grad[i][j * nt->sizes[i] + k] = 0.;
+      }
+    }
+  }
 
   for (size_t i = 0; i < batch_length; ++i)
   {
     training_datum* td = batch[i];
     backprop(nt, td);
-    for (size_t i = 0; i < nb_inter; ++i)
+    for (size_t j = 0; j < nb_inter; ++j)
     {
-      vector_add(nt->biases_grad[i], nt->biases_delta[i], nt->biases_delta[i],
-                 nt->sizes[i + 1]);
-      vector_add(nt->weights_grad[i], nt->weights_delta[i],
-                 nt->weights_delta[i], nt->sizes[i] * nt->sizes[i + 1]);
+      vector_add(nt->biases_grad[j], nt->biases_grad[j], nt->biases_delta[j],
+                 nt->sizes[j + 1]);
+      vector_add(nt->weights_grad[j], nt->weights_grad[j],
+                 nt->weights_delta[j], nt->sizes[j] * nt->sizes[j + 1]);
     }
   }
 
