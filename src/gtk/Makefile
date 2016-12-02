@@ -3,21 +3,24 @@
 #CC=clang
 CC=gcc
 
-CPPFLAGS= `pkg-config --cflags gtk+-3.0 gmodule-2.0 --cflags sdl`
+CPPFLAGS= `pkg-config --cflags gtk+-3.0 gmodule-2.0 --cflags` -lSDL -lSDL_image
 CFLAGS= -Wall -std=c99 -ggdb
 LDFLAGS=
-LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0` -lSDL_image
+LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0` -lSDL_image -lSDL
 
-SRC= mikatest.c img.c
+SRC=  ../img/img.c ../img/decoupage.c mikatest.c
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
 BIN= ${SRC:.c=}
 
 #all: gtkpxe gtk
+
 all: mikatest
 	make pro
 
 -include ${DEP}
+
+mikatest: ${OBJ}
 
 gtk: ${OBJ}
 

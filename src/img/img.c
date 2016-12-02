@@ -438,7 +438,7 @@ struct image* resizing(struct image *img, int nt)
   return resized;
 }
 
-int main(int argc, char *argv[])
+int test_main(int argc, char *argv[])
 {
   if(argc < 2)
     return 1;
