@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #include <gtk/gtk.h>
+#include "../img/img.h"
+
+char* chemin;
+
 
 //quit
 void quit (GtkToggleButton *tbutton, gpointer data)
@@ -13,8 +19,29 @@ void quit (GtkToggleButton *tbutton, gpointer data)
 void ouvrir(GtkWidget *button, GtkWidget *imgbox)
 {
   char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(button));
+  chemin = filename;
   gtk_image_set_from_file(GTK_IMAGE(imgbox), filename);
 }
+
+void grey(GtkWidget *button, GtkWidget *imgbox)
+{
+  init_sdl();
+  SDL_Surface *img = load_image(chemin);
+  img = tograyscale(img);
+  SDL_SaveBMP(img, "new_img_grey");
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");
+  remove("new_img_grey");
+  free(img);
+}
+
+/*
+void save (GtkWidget *button, GtkWidget *imgbox)
+{
+  //chooser = GTK_FILE_CHOOSER (dialog);
+  
+  char* path = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(button));
+  SDL_SaveBMP(imgbox,path);
+}*/
 
 GtkBuilder* get_build()
 {

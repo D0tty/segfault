@@ -6,7 +6,7 @@
 * Segfault is a unix software that aims to extract text form an image.
 * v0.1
 
-### How do I get thing up? ### 
+### How do I get thing up? ###
 
 
 ```
@@ -16,6 +16,14 @@ make
 
 ```
 
+### Training the neural network
+
+You need to download the training data at https://dl.dropboxusercontent.com/u/54394996/data.zip and unzip it in a `data` directory a the root of the project.
+
+The name of each directory corresponds to the code of the character within. Characters have been rendered with 122 different fonts, at 3 different rotation angles (-5°, 0°, 5°).
+
+Then, go to `src/train`, `make train` and call `./train` to see the list of available commands.
+
 ### Who do I talk to? ###
-* The Kaktus team: 
+* The Kaktus team:
   Dotty, Heldhy, Mika or Morhaus

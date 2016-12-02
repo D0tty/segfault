@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <dirent.h>
 #include <err.h>
+#include <time.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include "../nn/network.h"
@@ -9,11 +10,9 @@
 
 #define MAX_CHAR_CODE 1000
 #define INPUT_DIM 28
-#define INPUT_SIZE INPUT_DIM * INPUT_DIM
-#define DATA "data2"
-#define FONTS 112
-#define ROT 3
-#define CHAR_DATA_SIZE FONTS * ROT
+#define INPUT_SIZE (size_t)(INPUT_DIM * INPUT_DIM)
+#define DATA "data"
+#define MAX_TRAINING_DATA 200000
 
 static inline
 Uint8* pixelref(SDL_Surface *surf, unsigned x, unsigned y)
@@ -91,7 +90,7 @@ void debug_activations(double* activations, size_t activations_size)
   printf("\n");
 }
 
-void load_training_data(training_datum*** training_data_ptr,
+void load_training_data(char data_path[], training_datum*** training_data_ptr,
                         size_t* training_data_length_ptr,
                         size_t* char_codes_length_ptr)
 {
@@ -100,14 +99,13 @@ void load_training_data(training_datum*** training_data_ptr,
   int* char_codes = malloc(MAX_CHAR_CODE * sizeof (int));
   size_t char_codes_length = 0;
 
-  char data_dir[] = "../../" DATA;
-  if ((dir = opendir(data_dir)) != NULL)
+  if ((dir = opendir(data_path)) != NULL)
   {
     while ((ent = readdir(dir)) != NULL)
     {
       int char_code;
-      sscanf(ent->d_name, "%i", &char_code);
-      if (char_code != 0)
+      int read = sscanf(ent->d_name, "%i", &char_code);
+      if (read == 1)
       {
         char_codes[char_codes_length] = char_code;
         ++char_codes_length;
@@ -119,15 +117,12 @@ void load_training_data(training_datum*** training_data_ptr,
     }
     closedir(dir);
   } else {
-    errx(1, "Could not open directory %s", data_dir);
+    errx(1, "Could not open directory %s", data_path);
   }
 
   quick_sort(char_codes, char_codes + char_codes_length);
 
-  // TODO: Remove
-  // char_codes_length = 100;
-
-  training_datum** training_data = malloc(char_codes_length * CHAR_DATA_SIZE *
+  training_datum** training_data = malloc(MAX_TRAINING_DATA *
                                           sizeof (training_datum*));
   size_t training_data_length = 0;
 
@@ -145,7 +140,7 @@ void load_training_data(training_datum*** training_data_ptr,
     }
     output[i] = 1.;
 
-    sprintf(char_dir, "%s/%i", data_dir, char_code);
+    sprintf(char_dir, "%s/%i", data_path, char_code);
     int j = 0;
     if ((dir = opendir(char_dir)) != NULL)
     {
@@ -163,6 +158,10 @@ void load_training_data(training_datum*** training_data_ptr,
         training_data[training_data_length]->input = input;
         training_data[training_data_length]->output = output;
         ++training_data_length;
+        if (training_data_length > MAX_TRAINING_DATA)
+        {
+          errx(1, "Too many training data");
+        }
         SDL_FreeSurface(img);
         ++j;
       }
@@ -178,13 +177,14 @@ void load_training_data(training_datum*** training_data_ptr,
 }
 
 void free_training_data(training_datum** training_data,
-                        size_t training_data_length,
-                        size_t char_codes_length)
+                        size_t training_data_length)
 {
+  double* prev_output = NULL;
   for (size_t i = 0; i < training_data_length; ++i)
   {
-    if (i % (char_codes_length * CHAR_DATA_SIZE) == 0)
+    if (training_data[i]->output != prev_output)
     {
+      prev_output = training_data[i]->output;
       // All training data of the same char share the same output array.
       free(training_data[i]->output);
     }
@@ -194,73 +194,102 @@ void free_training_data(training_datum** training_data,
   free(training_data);
 }
 
-void test_train()
+void test_train(char data_path[], char output_path[], char output_csv[],
+                unsigned long long epochs, size_t hidden_layer)
 {
   training_datum** training_data;
   size_t training_data_length;
   size_t char_codes_length;
 
-  load_training_data(&training_data, &training_data_length, &char_codes_length);
+  load_training_data(data_path, &training_data, &training_data_length,
+                     &char_codes_length);
 
-  size_t sizes[] = { INPUT_SIZE, 30, char_codes_length };
+  size_t sizes[] = { INPUT_SIZE, hidden_layer, char_codes_length };
+  warnx("Creating network with layers %zu -> %zu -> %zu", INPUT_SIZE,
+        hidden_layer, char_codes_length);
   network* nt = create_network(sizes, 3);
   small_weights_init(nt);
 
-  sgd(nt, training_data, training_data_length, 30, 10, .05, 0.);
+  sgd(nt, training_data, training_data_length, epochs, 10, .05, 0.,
+      output_path, output_csv);
 
   warnx("Freeing network");
   free_network(nt);
 
   warnx("Freeing training data");
-  free_training_data(training_data, training_data_length, char_codes_length);
+  free_training_data(training_data, training_data_length);
 }
 
-void test_continue_train()
+void test_continue_train(char data_path[], char output_path[],
+                         char output_csv[], unsigned long long epochs,
+                         char filename[])
 {
   training_datum** training_data;
   size_t training_data_length;
   size_t char_codes_length;
 
-  load_training_data(&training_data, &training_data_length, &char_codes_length);
+  load_training_data(data_path, &training_data, &training_data_length,
+                     &char_codes_length);
 
-  network* nt = network_load("networks/epoch29.network");
+  network* nt = network_load(filename);
 
-  sgd(nt, training_data, training_data_length, 30, 10, .05, 0.);
-//
-  warnx("Freeing network");
-  free_network(nt);
-
-  warnx("Freeing training data");
-  free_training_data(training_data, training_data_length, char_codes_length);
-}
-
-void test_verify()
-{
-  training_datum** training_data;
-  size_t training_data_length;
-  size_t char_codes_length;
-
-  load_training_data(&training_data, &training_data_length, &char_codes_length);
-
-  network* nt = network_load("nt.network");
-
-  double* activations = malloc(char_codes_length * sizeof (double));
-
-  feedforward(nt, training_data[10000]->input, activations);
-  debug_training_datum(training_data[10000], char_codes_length);
-  debug_activations(activations, char_codes_length);
+  sgd(nt, training_data, training_data_length, epochs, 10, .05, 0.,
+      output_path, output_csv);
 
   warnx("Freeing network");
   free_network(nt);
 
   warnx("Freeing training data");
-  free_training_data(training_data, training_data_length, char_codes_length);
+  free_training_data(training_data, training_data_length);
 }
 
-int main()
+void print_usage()
 {
-  // test_train();
-  // test_verify();
-  test_continue_train();
+  printf("Usage:\n");
+  printf("  train new <data_path> <output_path> <output_csv> <epochs> <hidden_layer_neurons>\n");
+  printf("  train continue <data_path> <output_path> <output_csv> <epochs> <path_to_network>\n\n");
+  printf("Note: train does not create directories. The command will fail if output_path or output_csv point to non-existent directories.\n\n");
+  printf("Examples:\n");
+  printf("$ train new data networks stats.csv 30 240\n");
+  printf("# Train a new network with 240 neurons in the hidden layer for 30 epochs.\n");
+  printf("# Load training data from ./data.\n");
+  printf("# Save each epoch as epochN.network in the ./networks directory.\n\n");
+  printf("$ train continue data networks2 stats.csv  60 networks/epoch29.network\n");
+  printf("# Continue training the network saved at networks/epoch29.network for 60 additional epochs.\n");
+  printf("# Load training data from ./data.\n");
+  printf("# Save each epoch as epochN.network in the ./networks2 directory.\n");
+
+}
+
+int main(int argc, char* argv[])
+{
+  srand(time(NULL));
+  if (argc < 6)
+  {
+    print_usage();
+  }
+  else
+  {
+    char* cmd = argv[1];
+    char* data_path = argv[2];
+    char* output_path = argv[3];
+    char* output_csv = argv[4];
+    unsigned long long epochs;
+    sscanf(argv[5], "%llu", &epochs);
+    if (strcmp(cmd, "new") == 0)
+    {
+      size_t hidden_layer;
+      sscanf(argv[6], "%zu", &hidden_layer);
+      test_train(data_path, output_path, output_csv, epochs, hidden_layer);
+    }
+    else if (strcmp(cmd, "continue") == 0)
+    {
+      test_continue_train(data_path, output_path, output_csv, epochs, argv[6]);
+    }
+    else
+    {
+      print_usage();
+    }
+  }
   return 0;
 }
