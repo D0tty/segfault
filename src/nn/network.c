@@ -455,8 +455,14 @@ void sgd(network* nt, training_datum** training_data,
          char output_path[], char output_csv[])
 {
   FILE* fp = fopen(output_csv, "w");
-  fprintf(fp, "Epoch;Cost;Time;Accuracy\n");
-  training_datum** td = malloc(training_data_length * sizeof (training_datum*));
+  fprintf(fp, "Epoch;Time;Cost;Accuracy;Test Cost;Test Accuracy\n");
+  size_t half_length = training_data_length / 2;
+  training_datum** all_d = malloc(training_data_length
+                                  * sizeof (training_datum*));
+  training_datum** train_d = malloc(half_length * sizeof (training_datum*));
+  training_datum** test_d = malloc(half_length * sizeof (training_datum*));
+  shuffle(all_d, training_data, training_data_length, sizeof (training_datum*));
+  memcpy(test_d, all_d + half_length, half_length * sizeof (training_datum*));
   char nt_name[255];
   for (unsigned long long epoch = 0; epoch < epochs; epoch++)
   {
@@ -465,31 +471,40 @@ void sgd(network* nt, training_datum** training_data,
     clock_gettime(CLOCK_MONOTONIC, &tstart);
 
     warnx("Epoch %llu/%llu", epoch, epochs);
-    shuffle(td, training_data, training_data_length, sizeof (training_datum*));
-    for (size_t i = 0; i < training_data_length; i += mini_batch_size)
+    shuffle(train_d, all_d, half_length, sizeof (training_datum*));
+    for (size_t i = 0; i < half_length; i += mini_batch_size)
     {
-      train(nt, td + i, MIN(mini_batch_size, training_data_length - i),
-            learning_rate, weight_decay, training_data_length);
+      train(nt, train_d + i, MIN(mini_batch_size, half_length - i),
+            learning_rate, weight_decay, half_length);
     }
 
     clock_gettime(CLOCK_MONOTONIC, &tend);
 
-    double cost;
-    double accuracy;
-    total_cost_and_accuracy(nt, training_data, training_data_length,
-                            weight_decay, &cost, &accuracy);
+    double train_cost;
+    double train_accuracy;
+    double test_cost;
+    double test_accuracy;
+    total_cost_and_accuracy(nt, train_d, half_length, weight_decay, &train_cost,
+                            &train_accuracy);
+    total_cost_and_accuracy(nt, test_d, half_length, weight_decay, &test_cost,
+                            &test_accuracy);
 
-    fprintf(fp, "%llu;%f;%.5f;%.5f\n", epoch, cost,
+    fprintf(fp, "%llu;%f;%f;%f;%f;%f\n", epoch,
            ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) -
-           ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec), accuracy);
+           ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec), train_cost,
+           train_accuracy, test_cost, test_accuracy);
 
-    warnx("Done, cost %.3f, accuracy %.1f%%", cost, accuracy * 100);
+    warnx("Done. Training: Cost %.3f, Accuracy %.1f%%. Test: Cost %.3f, "
+          "Accuracy %.1f%%", train_cost, train_accuracy * 100, test_cost,
+          test_accuracy * 100);
     sprintf(nt_name, "%s/epoch%llu.network", output_path, epoch);
     warnx("Saving network to file: %s", nt_name);
     network_save(nt, nt_name);
     warnx("Saved");
   }
-  free(td);
+  free(all_d);
+  free(train_d);
+  free(test_d);
   fclose(fp);
 }
 
