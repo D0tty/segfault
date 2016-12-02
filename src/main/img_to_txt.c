@@ -81,7 +81,7 @@ void img_to_buff(network *nt, int* charcodes, struct page *pg)
       while(ln != NULL)
       {
         struct image* cc = ln->current_char;
-        char c = network_recognize(nt, charcodes, cc);
+        char c = is_space(cc) ? ' ' : network_recognize(nt, charcodes, cc);
         put_char(c);
         ln = ln->next_char;
       }
