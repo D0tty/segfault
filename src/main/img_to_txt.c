@@ -38,12 +38,39 @@ int put_char(char c)
   return index >= len ? 1 : 0; //ternary to ensure 0 or 1 values
 }
 
-void img_to_buff(network *nt, struct page *pg)
+char network_recognize(network* nt, int* charcodes, struct image* cc)
+{
+  double* input = malloc(cc->w * cc->h * sizeof (double));
+  size_t output_size = nt->sizes[nt->nb_layers - 1];
+  double* activations = malloc(output_size * sizeof (double));
+  for (int y = 0; y < cc->h; ++y)
+  {
+    for (int x = 0; x < cc->w; ++x)
+    {
+      input[y * cc->w + x] = (double)image_pixel(cc, x, y) - 0.5;
+    }
+  }
+  feedforward(nt, input, activations);
+  double* max_activation = activations[0];
+  size_t max_activation_idx = 0;
+  for (size_t i = 1; i < output_size; ++i)
+  {
+    if (activations[i] > max_activation)
+    {
+      max_activation = activations[i];
+      max_activation_idx = i;
+    }
+  }
+  char c = charcodes[max_activation_idx];
+  free(input);
+  free(activations);
+  return c;
+}
+
+void img_to_buff(network *nt, int* charcodes, struct page *pg)
 {
   size_t len = paragraph_compt(pg, 1);
   char *buffer = get_buffer(len);
-  char car = NULL;
-  (nt++)--; //TODO //just to use it to avoid warnings
 
   while(pg != NULL)
   {
@@ -53,8 +80,9 @@ void img_to_buff(network *nt, struct page *pg)
       struct line *ln = prg->current_line;
       while(ln != NULL)
       {
-        /*car = appel du NN sur ln->current_char;*/
-        put_char(car);
+        struct image* cc = ln->current_char;
+        char c = network_recognize(nt, charcodes, cc);
+        put_char(c);
         ln = ln->next_char;
       }
       put_char('\n');

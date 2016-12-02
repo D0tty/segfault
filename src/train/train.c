@@ -9,7 +9,7 @@
 #include "../util/qsort.h"
 
 #define MAX_CHAR_CODE 1000
-#define INPUT_DIM 28
+#define INPUT_DIM 20
 #define INPUT_SIZE (size_t)(INPUT_DIM * INPUT_DIM)
 #define DATA "data"
 #define MAX_TRAINING_DATA 200000
@@ -49,7 +49,7 @@ void image_to_input(double* input, SDL_Surface* img)
     {
       Uint8 r, g, b;
       SDL_GetRGB(getpixel(img, x, y), img->format, &r, &g, &b);
-      input[y * img->w + x] = 1. - (double)r / 255.;
+      input[y * img->w + x] = .5 - (double)r / 255.;
     }
   }
 }
@@ -91,7 +91,7 @@ void debug_activations(double* activations, size_t activations_size)
 }
 
 void load_training_data(char data_path[], training_datum*** training_data_ptr,
-                        size_t* training_data_length_ptr,
+                        size_t* training_data_length_ptr, int** char_codes_ptr,
                         size_t* char_codes_length_ptr)
 {
   DIR *dir;
@@ -173,6 +173,7 @@ void load_training_data(char data_path[], training_datum*** training_data_ptr,
 
   *training_data_ptr = training_data;
   *training_data_length_ptr = training_data_length;
+  *char_codes_ptr = char_codes;
   *char_codes_length_ptr = char_codes_length;
 }
 
@@ -199,10 +200,11 @@ void test_train(char data_path[], char output_path[], char output_csv[],
 {
   training_datum** training_data;
   size_t training_data_length;
+  int* char_codes;
   size_t char_codes_length;
 
   load_training_data(data_path, &training_data, &training_data_length,
-                     &char_codes_length);
+                     &char_codes, &char_codes_length);
 
   size_t sizes[] = { INPUT_SIZE, hidden_layer, char_codes_length };
   warnx("Creating network with layers %zu -> %zu -> %zu", INPUT_SIZE,
@@ -218,6 +220,8 @@ void test_train(char data_path[], char output_path[], char output_csv[],
 
   warnx("Freeing training data");
   free_training_data(training_data, training_data_length);
+
+  free(char_codes);
 }
 
 void test_continue_train(char data_path[], char output_path[],
@@ -225,11 +229,12 @@ void test_continue_train(char data_path[], char output_path[],
                          char filename[])
 {
   training_datum** training_data;
+  int* char_codes;
   size_t training_data_length;
   size_t char_codes_length;
 
   load_training_data(data_path, &training_data, &training_data_length,
-                     &char_codes_length);
+                     &char_codes, &char_codes_length);
 
   network* nt = network_load(filename);
 
@@ -241,6 +246,23 @@ void test_continue_train(char data_path[], char output_path[],
 
   warnx("Freeing training data");
   free_training_data(training_data, training_data_length);
+
+  free(char_codes);
+}
+
+void charcodes(char data_path[], char output_path[])
+{
+  training_datum** training_data;
+  int* char_codes;
+  size_t training_data_length;
+  size_t char_codes_length;
+
+  load_training_data(data_path, &training_data, &training_data_length,
+                     &char_codes, &char_codes_length);
+
+  FILE* fp = fopen(output_path, "w");
+  fwrite(char_codes, char_codes_length * sizeof (int), 1, fp);
+  fclose(fp);
 }
 
 void print_usage()
@@ -248,6 +270,7 @@ void print_usage()
   printf("Usage:\n");
   printf("  train new <data_path> <output_path> <output_csv> <epochs> <hidden_layer_neurons>\n");
   printf("  train continue <data_path> <output_path> <output_csv> <epochs> <path_to_network>\n\n");
+  printf("  train charcodes <data_path> <output_file>\n\n");
   printf("Note: train does not create directories. The command will fail if output_path or output_csv point to non-existent directories.\n\n");
   printf("Examples:\n");
   printf("$ train new data networks stats.csv 30 240\n");
@@ -257,14 +280,16 @@ void print_usage()
   printf("$ train continue data networks2 stats.csv  60 networks/epoch29.network\n");
   printf("# Continue training the network saved at networks/epoch29.network for 60 additional epochs.\n");
   printf("# Load training data from ./data.\n");
-  printf("# Save each epoch as epochN.network in the ./networks2 directory.\n");
-
+  printf("# Save each epoch as epochN.network in the ./networks2 directory.\n\n");
+  printf("$ train charcodes data codes.charcodes\n");
+  printf("# Create a map of output neuron index to the corresponding char code and save it to codes.charcodes.\n");
 }
 
 int main(int argc, char* argv[])
 {
   srand(time(NULL));
-  if (argc < 6)
+
+  if (argc < 2)
   {
     print_usage();
   }
@@ -273,22 +298,29 @@ int main(int argc, char* argv[])
     char* cmd = argv[1];
     char* data_path = argv[2];
     char* output_path = argv[3];
-    char* output_csv = argv[4];
-    unsigned long long epochs;
-    sscanf(argv[5], "%llu", &epochs);
-    if (strcmp(cmd, "new") == 0)
+    if (strcmp(cmd, "charcodes") == 0)
     {
-      size_t hidden_layer;
-      sscanf(argv[6], "%zu", &hidden_layer);
-      test_train(data_path, output_path, output_csv, epochs, hidden_layer);
-    }
-    else if (strcmp(cmd, "continue") == 0)
-    {
-      test_continue_train(data_path, output_path, output_csv, epochs, argv[6]);
+      charcodes(data_path, output_path);
     }
     else
     {
-      print_usage();
+      char* output_csv = argv[4];
+      unsigned long long epochs;
+      sscanf(argv[5], "%llu", &epochs);
+      if (strcmp(cmd, "new") == 0)
+      {
+        size_t hidden_layer;
+        sscanf(argv[6], "%zu", &hidden_layer);
+        test_train(data_path, output_path, output_csv, epochs, hidden_layer);
+      }
+      else if (strcmp(cmd, "continue") == 0)
+      {
+        test_continue_train(data_path, output_path, output_csv, epochs, argv[6]);
+      }
+      else
+      {
+        print_usage();
+      }
     }
   }
   return 0;
