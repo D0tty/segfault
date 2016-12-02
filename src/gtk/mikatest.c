@@ -14,8 +14,6 @@ void quit (GtkToggleButton *tbutton, gpointer data)
   gtk_main_quit ();
 }
 
-<<<<<<< HEAD
-=======
 /*trouve le chemin*/
 /*gchar* load(gchar* path)
 {
@@ -38,7 +36,6 @@ void quit (GtkToggleButton *tbutton, gpointer data)
   gtk_widget_destroy (dialog);
   return path;
 }*/
->>>>>>> 10a41bf85a6205aa91dc25e8242075da1c48d2ff
 
 //ouvrir le dialogue
 void ouvrir(GtkWidget *button, GtkWidget *imgbox)
@@ -62,12 +59,10 @@ void grey(GtkWidget *button, GtkWidget *imgbox)
 /*
 void save (GtkWidget *button, GtkWidget *imgbox)
 {
-<<<<<<< HEAD
   //chooser = GTK_FILE_CHOOSER (dialog);
   
   char* path = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(button));
   SDL_SaveBMP(imgbox,path);
-=======
   GtkWidget *dialog;
   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
   gint res;
@@ -88,7 +83,6 @@ void save (GtkWidget *button, GtkWidget *imgbox)
     g_free (filename);
   }
   gtk_widget_destroy (dialog);
->>>>>>> 10a41bf85a6205aa91dc25e8242075da1c48d2ff
 }*/
 
 GtkBuilder* get_build()
