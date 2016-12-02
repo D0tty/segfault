@@ -294,6 +294,18 @@ int is_column_blank(struct image *img, int x)
   return y == img->h;
 }
 
+int is_img_blank(struct image *img)
+{
+  int w = img->w, x = 0;
+  int is_blank = 1;
+  while ( is_blank && x < w )
+  {
+    is_blank = is_column_blank(img,x);
+    ++x;
+  }
+  return is_blank;
+}
+
 struct image* image_get_paragraph(struct image *img)
 {
   int x = 0,
