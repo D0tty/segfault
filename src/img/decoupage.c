@@ -8,7 +8,7 @@
 #include "img.h"
 #include "decoupage.h"
 
-#define TAILLE 28
+#define TAILLE 20
 
 struct line* line_create(struct image *chr)
 {
