@@ -1,5 +1,5 @@
+# include <stdio.h>
 # include <stdlib.h>
-# include <dirent.h>
 # include <math.h>
 # include <string.h>
 # include <err.h>
@@ -9,11 +9,8 @@
 # include "../util/debug.h"
 # include "../util/shuffle.h"
 # include "../util/misc.h"
-# include <stdio.h>
-# include <SDL/SDL.h>
-# include <SDL/SDL_image.h>
-# include "img_to_txt.h"
 # include "../nn/network.h"
+
 
 char* usage(void)
 {
@@ -22,7 +19,7 @@ char* usage(void)
 }
 
 int main(int argc, char *argv[])
-{ 
+{
   //check on args
   (--argv);
   if ( argc < 3 )

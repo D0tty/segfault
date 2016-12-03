@@ -1,6 +1,8 @@
 #ifndef IMG_H
 #define IMG_H
 
+# include <SDL/SDL.h>
+
 struct image {
 	int w, h;
 	int *data;
