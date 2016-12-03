@@ -1,3 +1,11 @@
+# include <stdlib.h>
+# include <stdio.h>
+
+# include "../img/img.h"
+# include "../img/decoupage.h"
+# include "../nn/network.h"
+
+
 /*
  * if len == 0 return a pointer to the buffer, NULL if buffer not init
  * if len != 0 realloc the buffer (no dada ereased and can increase len

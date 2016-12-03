@@ -10,3 +10,10 @@
 .DS_Store
 data
 __MACOSX
+src/train/network/
+src/train/network2/
+src/train/network3/
+src/train/network4/
+src/train/network5/
+src/train/newnet/
+src/train/newnet60
