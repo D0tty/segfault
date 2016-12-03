@@ -10,26 +10,37 @@
 # include "../util/shuffle.h"
 # include "../util/misc.h"
 # include "../nn/network.h"
-
+# include "../img/img.h"
+# include "../img/decoupage.h"
+# include "img_to_txt.h"
 
 char* usage(void)
 {
-  char *txt = "./test print <network_file> <image>\n";
+  char *txt = "./test <network_file> <image>\n";
   return txt;
 }
 
 int main(int argc, char *argv[])
 {
   //check on args
-  (--argv);
   if ( argc < 3 )
   {
     printf("%s" ,usage());
     return 2;
   }
+  init_sdl();
+  SDL_Surface* sdlimg = load_image(argv[2]);
+  tograyscale(sdlimg);
+  tobinary(sdlimg);
+  struct image *img = image_get_from_SDL(sdlimg);
+  SDL_FreeSurface(sdlimg);
+  SDL_Quit();
 
-  //network* nt = network_load(network_path);
 
-  //free_network(nt);
+  network* nt = network_load(argv[1]);
+  struct page *pg = get_page(img);
+
+
+  free_network(nt);
   return 0;
 }

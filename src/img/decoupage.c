@@ -327,3 +327,14 @@ int space(struct image *img)
   return (i == w) ? 1 : 0;
 }
 
+struct page* get_page(struct image *img)
+{
+  struct image *i = first_line_in_paragraph(img);
+  int ld = i->h;
+  image_free(i);
+
+  struct page *pg = NULL;
+
+  pg = to_page(img, gp, lh);
+  return pg;
+}

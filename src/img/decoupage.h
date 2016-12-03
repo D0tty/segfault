@@ -63,4 +63,6 @@ size_t line_compt(struct paragraph *prgh);
 
 size_t char_compt(struct line *ln);
 
+struct page* get_page(struct image *img);
+
 #endif
