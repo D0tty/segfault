@@ -40,7 +40,15 @@ int main(int argc, char *argv[])
   network* nt = network_load(argv[1]);
   struct page *pg = get_page(img);
 
+  char* text = get_buffer(paragraph_compt(pg, 1));
+  img_to_buff();
 
+  printf("%s\n", text);
+
+
+  free(text);
   free_network(nt);
+  page_free(pg);
+
   return 0;
 }
