@@ -1,5 +1,7 @@
 #define _POSIX_C_SOURCE 199309L
 # include <stdio.h>
+# include <stddef.h>
+# include <wchar.h>
 # include <stdlib.h>
 # include <locale.h>
 # include <math.h>
@@ -46,8 +48,11 @@ int main(int argc, char *argv[])
   wchar_t *text = get_buffer(paragraph_compt(pg, 1));
   img_to_buff(nt, pg);
 
-  printf("%ls\n", text);
-
+  size_t len = paragraph_compt(NULL, 0);
+  for (size_t i = 0;  i < len; ++i)
+  {
+    wprintf(L"%lc", text[i]);
+  }
 
   free(text);
   free_network(nt);

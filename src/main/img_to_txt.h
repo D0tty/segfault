@@ -10,7 +10,7 @@
  * if len == 0 return a pointer to the buffer, NULL if buffer not init
  * if len != 0 realloc the buffer (no dada ereased and can increase len
  */
-char* get_buffer(size_t len);
+wchar_t* get_buffer(size_t len);
 
 /*
  * put the char c in the buffer
