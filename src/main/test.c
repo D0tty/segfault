@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 199309L
 # include <stdio.h>
 # include <stdlib.h>
+# include <locale.h>
 # include <math.h>
 # include <string.h>
 # include <err.h>
@@ -29,6 +30,7 @@ int main(int argc, char *argv[])
     printf("%s" ,usage());
     return 2;
   }
+  setlocale(LC_ALL, "");
   init_sdl();
   SDL_Surface* sdlimg = load_image(argv[2]);
   tograyscale(sdlimg);
@@ -41,10 +43,10 @@ int main(int argc, char *argv[])
   network* nt = network_load(argv[1]);
   struct page *pg = get_page(img);
 
-  char* text = get_buffer(paragraph_compt(pg, 1));
+  wchar_t* text = get_buffer(paragraph_compt(pg, 1));
   img_to_buff(nt, pg);
 
-  printf("%s\n", text);
+  printf("%ls\n", text);
 
 
   free(text);
