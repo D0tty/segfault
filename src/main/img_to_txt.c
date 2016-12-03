@@ -69,7 +69,7 @@ wchar_t network_recognize(network* nt, int* charcodes, struct image* cc)
 
 void img_to_buff(network *nt, int* charcodes, struct page *pg)
 {
-  size_t len = paragraph_compt(pg, 1);
+  size_t len = paragraph_compt(pg, 0);
   get_buffer(len);
 
   while(pg != NULL)

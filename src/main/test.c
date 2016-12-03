@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   network* nt = network_load(argv[1]);
   struct page *pg = get_page(img);
 
-  wchar_t* text = get_buffer(paragraph_compt(pg, 1));
+  wchar_t *text = get_buffer(paragraph_compt(pg, 1));
   img_to_buff(nt, pg);
 
   printf("%ls\n", text);
