@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 199309L
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
   struct page *pg = get_page(img);
 
   char* text = get_buffer(paragraph_compt(pg, 1));
-  img_to_buff();
+  img_to_buff(nt, pg);
 
   printf("%s\n", text);
 

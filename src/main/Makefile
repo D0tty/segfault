@@ -3,13 +3,14 @@
 #CC=clang
 CC=gcc
 
-CPPFLAGS=
-CFLAGS= -Wall -Wextra -Werror -std=c99 -ggdb
+CPPFLAGS=`pkg-config --cflags sdl`
+CFLAGS= -Wall -Wextra -pedantic -std=c99 -ggdb
 LDFLAGS=
-LDLIBS= -lSDL -lSDL_image -lm -lrt
+LDLIBS= `pkg-config --libs sdl` -lSDL -lSDL_image -lm -lrt
 
 SRC= ../util/vector.c ../util/gaussrand.c ../util/shuffle.c ../util/qsort.c \
-     ../nn/network.c ../util/debug.c ../img/img.c ../img/decoupage.c test.c
+     ../nn/network.c ../util/debug.c ../img/img.c ../img/decoupage.c \
+		 img_to_txt.c test.c
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
 BIN= ${SRC:.c=}

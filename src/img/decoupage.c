@@ -330,11 +330,11 @@ int space(struct image *img)
 struct page* get_page(struct image *img)
 {
   struct image *i = first_line_in_paragraph(img);
-  int ld = i->h;
+  int lh = i->h;
   image_free(i);
 
   struct page *pg = NULL;
 
-  pg = to_page(img, gp, lh);
+  pg = to_page(img, pg, lh);
   return pg;
 }

@@ -70,18 +70,18 @@ char network_recognize(network* nt, int* charcodes, struct image* cc)
 void img_to_buff(network *nt, int* charcodes, struct page *pg)
 {
   size_t len = paragraph_compt(pg, 1);
-  char *buffer = get_buffer(len);
+  get_buffer(len);
 
   while(pg != NULL)
   {
-    struct paragraph prg = pg->current_paragraph;
+    struct paragraph *prg = pg->current_paragraph;
     while(prg != NULL)
     {
       struct line *ln = prg->current_line;
       while(ln != NULL)
       {
         struct image* cc = ln->current_char;
-        char c = is_space(cc) ? ' ' : network_recognize(nt, charcodes, cc);
+        char c = is_img_blank(cc) ? ' ' : network_recognize(nt, charcodes, cc);
         put_char(c);
         ln = ln->next_char;
       }
