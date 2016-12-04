@@ -33,7 +33,7 @@ void grey(GtkWidget *button, GtkWidget *imgbox)
   free(img);
 }
 
-void tobin(GtkWidget *button, GtkWidget *imgbox)                                 
+void tobin(GtkWidget *button, GtkWidget *imgbox)                 
 {                                                                               
   init_sdl();                                                                   
   SDL_Surface *img = load_image(chemin);                                        
@@ -51,8 +51,18 @@ void result (GtkWidget *button, GtkLabel *label)
   text = "coucou je fonctionne";
   gtk_label_set_label(label, text);
 }
-
-
+/*
+void l_rot(GtkWidget *button, GtkWidget *imgbox)      
+{                                                                              
+  init_sdl();                                                                   
+  SDL_Surface *img = load_image(chemin);                                        
+  img = left_rotation(img);
+  SDL_SaveBMP(img, "new_img_grey");                                             
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");                   
+  remove("new_img_grey");                                                       
+  free(img);                                                                    
+}  
+*/
 /*
 void save (GtkWidget *button, GtkWidget *imgbox)
 {

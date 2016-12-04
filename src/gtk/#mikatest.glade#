@@ -152,7 +152,7 @@
                   <object class="GtkEntry" id="entry1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="text" translatable="yes">Choose your anglez</property>
+                    <property name="text" translatable="yes">Choose your angle</property>
                   </object>
                   <packing>
                     <property name="left_attach">2</property>
