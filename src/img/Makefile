@@ -6,7 +6,7 @@ CC=gcc
 CPPFLAGS=
 CFLAGS= -Wall -Wextra -Werror -std=c99 -ggdb
 LDFLAGS=
-LDLIBS= -lSDL -lSDL_image
+LDLIBS= -lSDL -lSDL_image -lm
 
 SRC= img.c decoupage.c
 OBJ= ${SRC:.c=.o}

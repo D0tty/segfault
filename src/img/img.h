@@ -62,4 +62,11 @@ struct image* image_merge_vertical(struct image *img1, struct image *img2);
 
 struct image* resizing(struct image *img, int nt);
 
+SDL_Surface* noise_reduction(SDL_Surface *img);
+
+SDL_Surface* right_rotation(SDL_Surface *img);
+
+SDL_Surface* left_rotation(SDL_Surface *img);
+
+SDL_Surface* rotation(SDL_Surface *img, double angle);
 #endif

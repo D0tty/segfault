@@ -5,10 +5,12 @@
 #include <string.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
+#include <math.h>
 #include "img.h"
 #include "decoupage.h"
 
 #define THRESHOLD 150
+#define PI 3.14159
 
 void wait_for_keypressed(void)
 {
@@ -155,6 +157,96 @@ SDL_Surface* display_image(SDL_Surface *img)
   return screen;
 }
 
+SDL_Surface* noise_reduction(SDL_Surface *img)
+{
+  for(int j = 1; j < img->w - 1; ++j)
+  {
+    for(int i = 1; i < img->h - 1; ++i)
+    {
+      Uint8 R, G, B;
+      int RR = 0, GG = 0, BB = 0;          
+      for(int x = -1; x <= 1; ++x)
+      {
+        for(int y = -1; y <= 1; ++y)
+        {
+          SDL_GetRGB(getpixel(img, j + x, i + y), img->format, &R, &G, &B);                    
+          RR += R;
+          GG += G;
+          BB += B;
+        }
+      }
+      RR = RR / 9;
+      GG = GG / 9;
+      BB = BB / 9;
+      Uint32 pix = SDL_MapRGB(img->format, RR, GG, BB);                               
+      putpixel(img,j,i,pix); 
+    }
+  }
+  return img;
+}
+
+SDL_Surface* right_rotation(SDL_Surface *img)
+{
+  SDL_Surface *new = SDL_CreateRGBSurface(0, img->h, img->w, 32, 0, 0, 0, 0);
+  for(int j = 0; j < img->w; ++j)
+  {
+    for(int i = 0; i < img->h; ++i)
+    {
+      putpixel(new, img->h - 1 - i, j, getpixel(img, j, i));  
+    }
+  }
+  return new;
+}
+
+SDL_Surface* left_rotation(SDL_Surface *img)
+{
+  SDL_Surface *new = SDL_CreateRGBSurface(0, img->h, img->w, 32, 0, 0, 0, 0);   
+  for(int j = 0; j < img->w; ++j)                                                  
+  {                                                                                
+    for(int i = 0; i < img->h; ++i)                                                
+    {                                                                              
+      putpixel(new, i, img->w - 1 - j, getpixel(img, j, i));                       
+    }                                                                              
+  }                                                                                
+  return new;    
+}
+
+SDL_Surface* rotation(SDL_Surface *img, double angle)
+{
+  angle = angle * PI/180;
+  SDL_Surface *new = SDL_CreateRGBSurface(0, img->w, img->h, 32, 0, 0, 0, 0);
+  double cs = cos(angle), 
+         sn = sin(angle);
+  int x = 0,
+      y = 0,
+      it = 0,
+      jt = 0,
+      hw = img->w / 2,
+      hh = img->h / 2;
+  for(int a = 0; a < img->w; ++a)
+  {
+    for(int b = 0; b < img->h; ++b)
+    {
+      putpixel(new, a, b, SDL_MapRGB(img->format, 255, 255, 255));
+    }
+  }
+  for(int j = 0; j < img->w; ++j)
+  {
+    for(int i = 0; i < img->h; ++i)
+    {
+      jt = j - hw;
+      it = i - hh;
+      x = jt * cs - it * sn + hw;
+      y = it * cs + jt * sn + hh;
+      if(x >= 0 && y >= 0 && x < img->w && y < img->h)
+      {
+        putpixel(new, x, y, getpixel(img, j, i));
+      }
+    }
+  }
+  return new;
+}
+
 SDL_Surface* to_sdl_image(struct image *img)
 {
   unsigned w = img->w, h = img->h;
@@ -210,6 +302,7 @@ void image_fill(struct image *img)
     }
   }
 }
+
 
 void image_print(struct image *img)
 {
@@ -442,12 +535,14 @@ int test_main(int argc, char *argv[])
 {
   if(argc < 2)
     return 1;
+  double e = 90;
   //SDL init, load, gray, B&W
   init_sdl();
   SDL_Surface* sdlimg = load_image(argv[1]);
 
   //dispaly color
   display_image(sdlimg);
+  display_image(rotation(sdlimg, e));
 
   //display gray
   tograyscale(sdlimg);
@@ -462,8 +557,11 @@ int test_main(int argc, char *argv[])
 
   //display paragraph
   img = image_get_paragraph(img);
+
   sdlimg = to_sdl_image(img);
   display_image(sdlimg);
+
+
 
   struct image *i = first_line_in_paragraph(img);
   int lh = i->h;
