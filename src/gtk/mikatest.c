@@ -6,7 +6,7 @@
 #include "../img/img.h"
 
 char* chemin;
-
+double degre=0;
 
 //quit
 void quit (GtkToggleButton *tbutton, gpointer data)
@@ -51,17 +51,63 @@ void result (GtkWidget *button, GtkLabel *label)
   text = "coucou je fonctionne";
   gtk_label_set_label(label, text);
 }
-/*
+
 void l_rot(GtkWidget *button, GtkWidget *imgbox)      
 {                                                                              
   init_sdl();                                                                   
   SDL_Surface *img = load_image(chemin);                                        
+  
   img = left_rotation(img);
   SDL_SaveBMP(img, "new_img_grey");                                             
   gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");                   
   remove("new_img_grey");                                                       
   free(img);                                                                    
 }  
+
+
+void r_rot(GtkWidget *button, GtkWidget *imgbox)                                
+{                                                                               
+  init_sdl();                                                                   
+  SDL_Surface *img = load_image(chemin);                                        
+  img = right_rotation(img);                         
+  SDL_SaveBMP(img, "new_img_bw");                                             
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_bw");                   
+  remove("new_img_bw");                                                       
+  free(img);                                                                    
+}
+
+void rot(GtkWidget *button, GtkWidget *imgbox)                                
+{                                                                               
+  init_sdl();                                                                   
+  SDL_Surface *img = load_image(chemin); 
+  img = rotation(img,degre);
+  SDL_SaveBMP(img, "new_img_grey");                             
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");                   
+  remove("new_img_grey");                                                       
+  free(img);                                                                    
+}     
+
+void more(GtkWidget *button, GtkWidget *label)
+{
+  degre += 1;
+  /*char* text;
+  sprintf(text,"%f",degre);*/
+  gtk_label_set_label(label,"%f"degre);
+}
+
+void less(GtkWidget *button, GtkWidget *label)                                  
+{                                                                               
+  degre -= 1;                                                                   
+  //char* text = degre;                                                           
+  //gtk_label_set_label(label,text);                                              
+}
+
+/*
+void set_degre(GtkWidget *button, GtkWidget *entry)
+{
+  degre = (double)gtk_entry_get_text(entry);
+  //degre = (double)angle;
+}
 */
 /*
 void save (GtkWidget *button, GtkWidget *imgbox)
