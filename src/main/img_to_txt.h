@@ -22,4 +22,4 @@ int put_char(char c);
  * called with the correct page structure, it fills the txt buffer
  * to we can use this buffer to print / show the converted text
  */
-void img_to_buff(network *nt, struct page *pg);
+void img_to_buff(network *nt, int* charcodes, struct page *pg);

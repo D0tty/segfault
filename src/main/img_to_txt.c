@@ -43,13 +43,26 @@ wchar_t network_recognize(network* nt, int* charcodes, struct image* cc)
   double* input = malloc(cc->w * cc->h * sizeof (double));
   size_t output_size = nt->sizes[nt->nb_layers - 1];
   double* activations = malloc(output_size * sizeof (double));
+  int space_count = 0;
   for (int y = 0; y < cc->h; ++y)
   {
     for (int x = 0; x < cc->w; ++x)
     {
-      input[y * cc->w + x] = (double)image_pixel(cc, x, y) - 0.5;
+      input[y * cc->w + x] = .5 - (double)image_pixel(cc, x, y);
+      if (image_pixel(cc, x, y) == 0)
+      {
+        space_count += 1;
+      }
     }
   }
+
+  if (space_count == cc->h * cc->w)
+  {
+    free(input);
+    free(activations);
+    return (wchar_t)(32);
+  }
+
   feedforward(nt, input, activations);
   double max_activation = activations[0];
   size_t max_activation_idx = 0;
@@ -61,10 +74,11 @@ wchar_t network_recognize(network* nt, int* charcodes, struct image* cc)
       max_activation_idx = i;
     }
   }
-  wchar_t c = charcodes[max_activation_idx];
+
+  int c = charcodes[max_activation_idx];
   free(input);
   free(activations);
-  return c;
+  return (wchar_t)c;
 }
 
 void img_to_buff(network *nt, int* charcodes, struct page *pg)

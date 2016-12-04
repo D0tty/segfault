@@ -284,6 +284,7 @@ void charcodes(char data_path[], char output_path[])
                      &char_codes, &char_codes_length);
 
   FILE* fp = fopen(output_path, "w");
+  fwrite(&char_codes_length, sizeof (size_t), 1, fp);
   fwrite(char_codes, char_codes_length * sizeof (int), 1, fp);
   fclose(fp);
 }
