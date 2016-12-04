@@ -6,7 +6,7 @@ CC=gcc
 CPPFLAGS=`pkg-config --cflags sdl`
 CFLAGS= -Wall -Wextra -pedantic -std=c99 -ggdb
 LDFLAGS=
-LDLIBS= `pkg-config --libs sdl` -lSDL -lSDL_image -lm -lrt
+LDLIBS= `pkg-config --libs sdl` -lSDL -lSDL_image -lm
 
 SRC= ../util/vector.c ../util/gaussrand.c ../util/shuffle.c ../util/qsort.c \
      ../nn/network.c ../util/debug.c ../img/img.c ../img/decoupage.c \
