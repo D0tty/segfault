@@ -87,19 +87,20 @@ void rot(GtkWidget *button, GtkWidget *imgbox)
   free(img);                                                                    
 }     
 
-void more(GtkWidget *button, GtkWidget *label)
+void more(GtkWidget *button, GtkLabel *label)
 {
-  degre += 1;
-  /*char* text;
-  sprintf(text,"%f",degre);*/
-  gtk_label_set_label(label,"%f"degre);
+  degre += 5;
+  char text[5];
+  snprintf(text,5,"%f",degre);
+  gtk_label_set_label(label,text);
 }
 
-void less(GtkWidget *button, GtkWidget *label)                                  
+void less(GtkWidget *button, GtkLabel *label)                                  
 {                                                                               
-  degre -= 1;                                                                   
-  //char* text = degre;                                                           
-  //gtk_label_set_label(label,text);                                              
+  degre -= -1;                                                             
+  char text[5];           
+  snprintf(text,5,"%f",degre);
+  gtk_label_set_label(label,text);                                              
 }
 
 /*
