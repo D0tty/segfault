@@ -6,7 +6,7 @@ CC=gcc
 CPPFLAGS= `pkg-config --cflags gtk+-3.0 gmodule-2.0 --cflags` -lSDL -lSDL_image
 CFLAGS= -Wall -std=c99 -ggdb
 LDFLAGS=
-LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0` -lSDL_image -lSDL
+LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0` -lSDL_image -lSDL -lm
 
 SRC=  ../img/img.c ../img/decoupage.c mikatest.c
 OBJ= ${SRC:.c=.o}
