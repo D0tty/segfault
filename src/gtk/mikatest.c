@@ -22,6 +22,25 @@ void ouvrir(GtkWidget *button, GtkWidget *imgbox)
   gtk_image_set_from_file(GTK_IMAGE(imgbox), filename);
 }
 
+
+void save(GtkWidget *button, GtkLabel *label) 
+{
+  const char* text;
+  text = gtk_label_get_label(label);
+  char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(button));
+  FILE* fichier = NULL;
+  fichier = fopen(strcat(filename,"text.txt"),"w");
+  if (fichier != NULL)
+  {
+    fputs(text, fichier);
+    fclose(fichier);
+  }
+}
+
+
+
+
+
 void grey(GtkWidget *button, GtkWidget *imgbox)
 {
   init_sdl();
@@ -103,13 +122,6 @@ void less(GtkWidget *button, GtkLabel *label)
   gtk_label_set_label(label,text);                                              
 }
 
-/*
-void set_degre(GtkWidget *button, GtkWidget *entry)
-{
-  degre = (double)gtk_entry_get_text(entry);
-  //degre = (double)angle;
-}
-*/
 /*
 void save (GtkWidget *button, GtkWidget *imgbox)
 {

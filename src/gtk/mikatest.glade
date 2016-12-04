@@ -4,6 +4,7 @@
   <requires lib="gtk+" version="3.12"/>
   <object class="GtkWindow" id="MainWindow">
     <property name="can_focus">False</property>
+    <property name="gravity">south-west</property>
     <child>
       <object class="GtkBox" id="box1">
         <property name="visible">True</property>
@@ -15,32 +16,18 @@
             <property name="can_focus">False</property>
             <property name="margin_top">10</property>
             <child>
-              <object class="GtkFileChooserButton" id="filechooserbutton1">
+              <object class="GtkFileChooserButton" id="Save">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes" context="Save" comments="Save">Save</property>
                 <property name="action">save</property>
-                <signal name="file-set" handler="save" object="image" swapped="no"/>
+                <property name="title" translatable="yes">Save</property>
+                <signal name="file-set" handler="save" object="label" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="button1">
-                <property name="label">gtk-save-as</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-                <property name="always_show_image">True</property>
-                <signal name="clicked" handler="save" object="image" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">2</property>
               </packing>
             </child>
             <child>
@@ -58,7 +45,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">3</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>
@@ -100,6 +87,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="margin_left">10</property>
                     <property name="margin_top">10</property>
                     <property name="margin_bottom">10</property>
                     <signal name="clicked" handler="grey" object="image" swapped="no"/>
@@ -145,6 +133,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
+                    <property name="margin_right">10</property>
                     <signal name="clicked" handler="r_rot" object="image" swapped="no"/>
                   </object>
                   <packing>
@@ -209,6 +198,10 @@
                       <object class="GtkLabel" id="degre">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="margin_left">10</property>
+                        <property name="margin_right">10</property>
+                        <property name="label" translatable="yes">  Choose your angle
+to rotate and press ok</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
