@@ -14,29 +14,6 @@ void quit (GtkToggleButton *tbutton, gpointer data)
   gtk_main_quit ();
 }
 
-/*trouve le chemin*/
-/*gchar* load(gchar* path)
-{
-  GtkWidget *dialog = gtk_file_chooser_dialog_new("Load image", NULL,
-  GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL,
-  GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
-  if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT)
-  {
-    path = gtk_file_chooser_get_preview_filename (
-    GTK_FILE_CHOOSER(dialog));
-    GdkPixbuf *pix = gdk_pixbuf_new_from_file (path, NULL);
-    pix = gdk_pixbuf_scale_simple (pix, 700, 850, GDK_INTERP_NEAREST);
-    GtkWidget *image = gtk_image_new_from_pixbuf(pix);
-    GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(win), path);
-    gtk_container_add(GTK_CONTAINER(win), image);
-    gtk_window_move(GTK_WINDOW(win), 500, 0);
-    gtk_widget_show_all(win);
-  }
-  gtk_widget_destroy (dialog);
-  return path;
-}*/
-
 //ouvrir le dialogue
 void ouvrir(GtkWidget *button, GtkWidget *imgbox)
 {
@@ -55,6 +32,26 @@ void grey(GtkWidget *button, GtkWidget *imgbox)
   remove("new_img_grey");
   free(img);
 }
+
+void tobin(GtkWidget *button, GtkWidget *imgbox)                                 
+{                                                                               
+  init_sdl();                                                                   
+  SDL_Surface *img = load_image(chemin);                                        
+  img = tograyscale(img);                                                       
+  img = tobinary(img);
+  SDL_SaveBMP(img, "new_img_grey");                                             
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");                   
+  remove("new_img_grey");                                                       
+  free(img);                                                                    
+}    
+
+void result (GtkWidget *button, GtkLabel *label)
+{
+  char *text;
+  text = "coucou je fonctionne";
+  gtk_label_set_label(label, text);
+}
+
 
 /*
 void save (GtkWidget *button, GtkWidget *imgbox)
