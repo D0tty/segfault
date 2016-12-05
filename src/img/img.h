@@ -4,31 +4,13 @@
 # include <SDL/SDL.h>
 
 struct image {
-	int w, h;
-	int *data;
+  int w, h;
+  int *data;
 };
 
 
 #define image_pixel(img, i, j) img->data[img->w * (j) + (i)]
 
-void wait_for_keypressed(void);
-
-//static inline
-////Uint8* pixelref(SDL_Surface *surf, unsigned x, unsigned y);
-
-void putpixel(SDL_Surface *surface, unsigned x, unsigned y, Uint32 pixel);
-
-Uint32 getpixel(SDL_Surface *surface, unsigned x, unsigned y);
-
-void init_sdl(void);
-
-SDL_Surface* load_image(char *path);
-
-SDL_Surface* tograyscale(SDL_Surface* img);
-
-SDL_Surface* tobinary(SDL_Surface* img);
-
-SDL_Surface* display_image(SDL_Surface *img);
 
 SDL_Surface* to_sdl_image(struct image *img);
 

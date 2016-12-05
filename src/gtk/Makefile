@@ -6,9 +6,12 @@ CC=gcc
 CPPFLAGS= `pkg-config --cflags gtk+-3.0 gmodule-2.0 --cflags` -lSDL -lSDL_image
 CFLAGS= -Wall -std=c99 -ggdb
 LDFLAGS=
-LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0` -lSDL_image -lSDL -lm
+LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0` -lSDL_image -lSDL -lm -lrt
 
-SRC=  ../img/img.c ../img/decoupage.c mikatest.c
+SRC= ../v2/world.c ../v2/quick_sort.c ../v2/list.c ../v2/sdl.c ../img/img.c \
+		 ../img/decoupage.c mikatest.c\
+		 ../nn/network.c ../util/vector.c ../util/gaussrand.c ../util/debug.c \
+		 ../util/shuffle.c
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
 BIN= ${SRC:.c=}
@@ -19,6 +22,9 @@ all: mikatest
 	make pro
 
 -include ${DEP}
+
+train:
+	make ../train/train
 
 mikatest: ${OBJ}
 

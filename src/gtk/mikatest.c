@@ -4,6 +4,8 @@
 #include <SDL/SDL_image.h>
 #include <gtk/gtk.h>
 #include "../img/img.h"
+#include "../v2/sdl.h"
+#include "../v2/world.h"
 
 char* chemin;
 double degre=0;
@@ -52,7 +54,7 @@ void grey(GtkWidget *button, GtkWidget *imgbox)
   {
     img = g_img;
   }
-  img = tograyscale(img);
+  tograyscale(img);
   SDL_SaveBMP(img, "new_img_grey");
   gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");
   remove("new_img_grey");
@@ -71,18 +73,30 @@ void tobin(GtkWidget *button, GtkWidget *imgbox)
   {
     img = g_img;
   }
-  img = tograyscale(img);
-  img = tobinary(img);
+  tograyscale(img);
+  tobinary(img,140);
   SDL_SaveBMP(img, "new_img_grey");
   gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");
   remove("new_img_grey");
 }
 
+GtkLabel *g_lab;
+
 void result (GtkWidget *button, GtkLabel *label)
 {
-  char *text;
-  text = "coucou je fonctionne";
-  gtk_label_set_label(label, text);
+  g_lab = label;
+}
+
+void result2 (GtkWidget *button, GtkWidget *imgbox)
+{
+  SDL_Surface* img;
+  size_t text_length;
+  wchar_t* text;
+  the_world("all3.network", "all.charcodes", chemin, &img, &text, &text_length);
+  gtk_label_set_label(g_lab, (gchar*)text);
+  SDL_SaveBMP(img, "result");
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "result");
+  remove("result");
 }
 
 void l_rot(GtkWidget *button, GtkWidget *imgbox)
@@ -163,32 +177,32 @@ void less(GtkWidget *button, GtkLabel *label)
 }
 
 /*
-void save (GtkWidget *button, GtkWidget *imgbox)
+   void save (GtkWidget *button, GtkWidget *imgbox)
+   {
+//chooser = GTK_FILE_CHOOSER (dialog);
+
+char* path = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(button));
+SDL_SaveBMP(imgbox,path);
+GtkWidget *dialog;
+GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+gint res;
+
+dialog = dial;
+dialog = gtk_file_chooser_dialog_new ("Open File",NULL,
+action,("_Cancel"),GTK_RESPONSE_CANCEL,("_Open"),
+GTK_RESPONSE_ACCEPT,NULL);
+
+res = gtk_dialog_run (GTK_DIALOG (dialog));
+if (res == GTK_RESPONSE_ACCEPT)
 {
-  //chooser = GTK_FILE_CHOOSER (dialog);
-
-  char* path = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(button));
-  SDL_SaveBMP(imgbox,path);
-  GtkWidget *dialog;
-  GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-  gint res;
-
-  dialog = dial;
-  dialog = gtk_file_chooser_dialog_new ("Open File",NULL,
-      action,("_Cancel"),GTK_RESPONSE_CANCEL,("_Open"),
-      GTK_RESPONSE_ACCEPT,NULL);
-
-  res = gtk_dialog_run (GTK_DIALOG (dialog));
-  if (res == GTK_RESPONSE_ACCEPT)
-  {
-    char *filename;
-    GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-    //path = gtk_file_chooser_get_filename (chooser);
-    //load(path);
-    gtk_image_set_from_file (GTK_IMAGE(image) , filename);
-    g_free (filename);
-  }
-  gtk_widget_destroy (dialog);
+char *filename;
+GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+//path = gtk_file_chooser_get_filename (chooser);
+//load(path);
+gtk_image_set_from_file (GTK_IMAGE(image) , filename);
+g_free (filename);
+}
+gtk_widget_destroy (dialog);
 }*/
 
 GtkBuilder* get_build()

@@ -8,154 +8,11 @@
 #include <math.h>
 #include "img.h"
 #include "decoupage.h"
+#include "../v2/sdl.h"
 
 #define THRESHOLD 130
 #define PI 3.14159
 
-void wait_for_keypressed(void)
-{
-  SDL_Event             event;
-  for (;;)
-  {
-    SDL_PollEvent( &event );
-    switch (event.type) {
-      case SDL_KEYDOWN: return;
-      default: break;
-    }
-  }
-}
-
-/* SDL */
-
-  static inline
-Uint8* pixelref(SDL_Surface *surf, unsigned x, unsigned y)
-{
-  int bpp = surf->format->BytesPerPixel;
-  return (Uint8*)surf->pixels + y * surf->pitch + x * bpp;
-}
-
-void putpixel(SDL_Surface *surface, unsigned x, unsigned y, Uint32 pixel)
-{
-  Uint8 *p = pixelref(surface, x, y);
-  switch(surface->format->BytesPerPixel)
-  {
-    case 1:
-      *p = pixel;
-      break;
-    case 2:
-      *(Uint16 *)p = pixel;
-      break;
-    case 3:
-      if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-      {
-        p[0] = (pixel >> 16) & 0xff;
-        p[1] = (pixel >> 8) & 0xff;
-        p[2] = pixel & 0xff;
-      }
-      else
-      {
-        p[0] = pixel & 0xff;
-        p[1] = (pixel >> 8) & 0xff;
-        p[2] = (pixel >> 16) & 0xff;
-      }
-      break;
-    case 4:
-      *(Uint32 *)p = pixel;
-      break;
-  }
-}
-
-Uint32 getpixel(SDL_Surface *surface, unsigned x, unsigned y)
-{
-  Uint8 *p = pixelref(surface, x, y);
-  switch(surface->format->BytesPerPixel)
-  {
-    case 1:
-      return *p;
-    case 2:
-      return *(Uint16 *)p;
-    case 3:
-      if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-        return p[0] << 16 | p[1] << 8 | p[2];
-      else
-        return p[0] | p[1] << 8 | p[2] << 16;
-    case 4:
-      return *(Uint32 *)p;
-  }
-  return 0;
-}
-
-void init_sdl(void)
-{
-  if( SDL_Init(SDL_INIT_VIDEO)==-1 )
-  {
-    errx(1,"Could not initialize SDL: %s.\n", SDL_GetError());
-  }
-}
-
-SDL_Surface* load_image(char *path)
-{
-  SDL_Surface          *img;
-  img = IMG_Load(path);
-  if (!img)
-    errx(3, "can't load %s: %s", path, IMG_GetError());
-  return img;
-}
-
-SDL_Surface* tograyscale(SDL_Surface* img)
-{
-  for ( int x = 0; x < img->w; ++x )
-  {
-    for ( int y = 0; y < img->h; ++y )
-    {
-      Uint8 R, G, B;
-      SDL_GetRGB(getpixel(img, x, y), img->format, &R, &G, &B);
-      float luminance = 0.3 * R + 0.59 * G + 0.11 * B;
-      R = G = B = luminance;
-      Uint32 pix = SDL_MapRGB(img->format, R, G, B);
-      putpixel(img,x,y,pix);
-    }
-  }
-  return img;
-}
-
-SDL_Surface* tobinary(SDL_Surface* img)
-{
-  Uint8 threshold = THRESHOLD;
-  for ( int x = 0; x < img->w; ++x )
-  {
-    for ( int y = 0; y < img->h; ++y )
-    {
-      Uint8 R, G, B;
-      SDL_GetRGB(getpixel(img, x, y), img->format, &R, &G, &B);
-      R = G = B = (R+G+B)/3 < threshold ? 0 : 255;
-      Uint32 pix = SDL_MapRGB(img->format, R, G, B);
-      putpixel(img,x,y,pix);
-    }
-  }
-  return img;
-}
-
-SDL_Surface* display_image(SDL_Surface *img)
-{
-  SDL_Surface          *screen;
-  screen = SDL_SetVideoMode(img->w, img->h, 0, SDL_SWSURFACE|SDL_ANYFORMAT);
-  if ( screen == NULL )
-  {
-    errx(1, "Couldn't set %dx%d video mode: %s\n",
-        img->w, img->h, SDL_GetError());
-  }
-
-  /* Blit onto the screen surface */
-  if(SDL_BlitSurface(img, NULL, screen, NULL) < 0)
-    warnx("BlitSurface error: %s\n", SDL_GetError());
-
-  SDL_UpdateRect(screen, 0, 0, img->w, img->h);
-
-  wait_for_keypressed();
-
-  return screen;
-}
 
 SDL_Surface* noise_reduction(SDL_Surface *img)
 {
@@ -164,12 +21,12 @@ SDL_Surface* noise_reduction(SDL_Surface *img)
     for(int i = 1; i < img->h - 1; ++i)
     {
       Uint8 R, G, B;
-      int RR = 0, GG = 0, BB = 0;          
+      int RR = 0, GG = 0, BB = 0;
       for(int x = -1; x <= 1; ++x)
       {
         for(int y = -1; y <= 1; ++y)
         {
-          SDL_GetRGB(getpixel(img, j + x, i + y), img->format, &R, &G, &B);                    
+          SDL_GetRGB(getpixel(img, j + x, i + y), img->format, &R, &G, &B);
           RR += R;
           GG += G;
           BB += B;
@@ -178,8 +35,8 @@ SDL_Surface* noise_reduction(SDL_Surface *img)
       RR = RR / 9;
       GG = GG / 9;
       BB = BB / 9;
-      Uint32 pix = SDL_MapRGB(img->format, RR, GG, BB);                               
-      putpixel(img,j,i,pix); 
+      Uint32 pix = SDL_MapRGB(img->format, RR, GG, BB);
+      putpixel(img,j,i,pix);
     }
   }
   return img;
@@ -192,7 +49,7 @@ SDL_Surface* right_rotation(SDL_Surface *img)
   {
     for(int i = 0; i < img->h; ++i)
     {
-      putpixel(new, img->h - 1 - i, j, getpixel(img, j, i));  
+      putpixel(new, img->h - 1 - i, j, getpixel(img, j, i));
     }
   }
   return new;
@@ -200,22 +57,22 @@ SDL_Surface* right_rotation(SDL_Surface *img)
 
 SDL_Surface* left_rotation(SDL_Surface *img)
 {
-  SDL_Surface *new = SDL_CreateRGBSurface(0, img->h, img->w, 32, 0, 0, 0, 0);   
-  for(int j = 0; j < img->w; ++j)                                                  
-  {                                                                                
-    for(int i = 0; i < img->h; ++i)                                                
-    {                                                                              
-      putpixel(new, i, img->w - 1 - j, getpixel(img, j, i));                       
-    }                                                                              
-  }                                                                                
-  return new;    
+  SDL_Surface *new = SDL_CreateRGBSurface(0, img->h, img->w, 32, 0, 0, 0, 0);
+  for(int j = 0; j < img->w; ++j)
+  {
+    for(int i = 0; i < img->h; ++i)
+    {
+      putpixel(new, i, img->w - 1 - j, getpixel(img, j, i));
+    }
+  }
+  return new;
 }
 
 SDL_Surface* rotation(SDL_Surface *img, double angle)
 {
   angle = angle * PI/180;
   SDL_Surface *new = SDL_CreateRGBSurface(0, img->w, img->h, 32, 0, 0, 0, 0);
-  double cs = cos(angle), 
+  double cs = cos(angle),
          sn = sin(angle);
   int x = 0,
       y = 0,
@@ -487,9 +344,9 @@ struct image* image_merge_vertical(struct image *img1, struct image *img2)
     for(int j = 0; j < img2->h; ++j)
     {
       image_pixel(img, i, j + img1->h) = image_pixel(img2, i, j);
-    } 
+    }
   }
-  return img;  
+  return img;
 }
 
 struct image* line_to_image(struct line *ln)
@@ -525,7 +382,7 @@ struct image* resizing(struct image *img, int nt)
   {
     for(int j = 0; j < nt; ++j)
     {
-      image_pixel(resized, i, j) = image_pixel(img, (i*t)/nt, (j*t)/nt); 
+      image_pixel(resized, i, j) = image_pixel(img, (i*t)/nt, (j*t)/nt);
     }
   }
   return resized;
@@ -549,7 +406,7 @@ int test_main(int argc, char *argv[])
   display_image(sdlimg);
 
   //display B&W
-  tobinary(sdlimg);
+  tobinary(sdlimg,130);
   display_image(sdlimg);
 
   //create struct image
