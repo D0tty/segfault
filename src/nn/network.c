@@ -493,6 +493,7 @@ void sgd(network* nt, training_datum** training_data,
            ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) -
            ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec), train_cost,
            train_accuracy, test_cost, test_accuracy);
+    fflush(fp);
 
     warnx("Done. Training: Cost %.3f, Accuracy %.1f%%. Test: Cost %.3f, "
           "Accuracy %.1f%%", train_cost, train_accuracy * 100, test_cost,

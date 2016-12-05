@@ -9,7 +9,6 @@
 #include "../util/qsort.h"
 
 #define MAX_CHAR_CODE 1000
-#define INPUT_DIM 20
 #define INPUT_SIZE (size_t)(INPUT_DIM * INPUT_DIM)
 #define DATA "data"
 #define MAX_TRAINING_DATA 200000
@@ -54,45 +53,9 @@ void image_to_input(double* input, SDL_Surface* img)
   }
 }
 
-void debug_training_datum(training_datum* d, size_t output_size)
-{
-  printf("input:\n");
-  for (int y = 0; y < INPUT_DIM; ++y)
-  {
-    for (int x = 0; x < INPUT_DIM; ++x)
-    {
-      if (d->input[y * INPUT_DIM + x] > .5)
-      {
-        printf("#");
-      }
-      else
-      {
-        printf(" ");
-      }
-    }
-    printf("\n");
-  }
-  printf("output:\n");
-  for (size_t i = 0; i < output_size; ++i)
-  {
-    printf("%.0f ", d->output[i]);
-  }
-  printf("\n");
-}
-
-void debug_activations(double* activations, size_t activations_size)
-{
-  printf("activations:\n");
-  for (size_t i = 0; i < activations_size; ++i)
-  {
-    printf("%.2f ", activations[i]);
-  }
-  printf("\n");
-}
-
 void load_training_data(char data_path[], training_datum*** training_data_ptr,
                         size_t* training_data_length_ptr, int** char_codes_ptr,
-                        size_t* char_codes_length_ptr)
+                        size_t* char_codes_length_ptr, int* size_ptr)
 {
   DIR *dir;
   struct dirent *ent;
@@ -152,7 +115,8 @@ void load_training_data(char data_path[], training_datum*** training_data_ptr,
           // warnx("Could not open image %s", char_image);
           continue;
         }
-        double* input = malloc(INPUT_SIZE * sizeof (double));
+        *size_ptr = img->w * img->h;
+        double* input = malloc(*size_ptr * sizeof (double));
         image_to_input(input, img);
         training_data[training_data_length] = malloc(sizeof (training_datum));
         training_data[training_data_length]->input = input;
@@ -206,20 +170,21 @@ void free_training_data(training_datum** training_data,
 }
 
 void test_train(char data_path[], char output_path[], char output_csv[],
-                unsigned long long epochs, size_t* hidden_layers,
+                unsigned long long epochs, int set, double rate, size_t* hidden_layers,
                 size_t hidden_layers_length)
 {
   training_datum** training_data;
   size_t training_data_length;
   int* char_codes;
   size_t char_codes_length;
+  int size;
 
   load_training_data(data_path, &training_data, &training_data_length,
-                     &char_codes, &char_codes_length);
+                     &char_codes, &char_codes_length, &size);
 
   size_t nb_layers = 2 + hidden_layers_length;
   size_t* sizes = malloc(nb_layers * sizeof (size_t));
-  sizes[0] = INPUT_SIZE;
+  sizes[0] = size;
   sizes[nb_layers - 1] = char_codes_length;
   for (size_t i = 0; i < hidden_layers_length; ++i)
   {
@@ -232,7 +197,7 @@ void test_train(char data_path[], char output_path[], char output_csv[],
   network* nt = create_network(sizes, 3);
   small_weights_init(nt);
 
-  sgd(nt, training_data, training_data_length, epochs, 10, .05, 0.,
+  sgd(nt, training_data, training_data_length, epochs, set, rate, 0.,
       output_path, output_csv);
 
   warnx("Freeing network");
@@ -246,22 +211,23 @@ void test_train(char data_path[], char output_path[], char output_csv[],
 
 void test_continue_train(char data_path[], char output_path[],
                          char output_csv[], unsigned long long epochs,
-                         char filename[])
+                         int set, double rate, char filename[])
 {
   training_datum** training_data;
   int* char_codes;
   size_t training_data_length;
   size_t char_codes_length;
+  int size;
 
   load_training_data(data_path, &training_data, &training_data_length,
-                     &char_codes, &char_codes_length);
+                     &char_codes, &char_codes_length, &size);
 
   network* nt = network_load(filename);
   char output[255];
   format_sizes(output, nt->sizes, nt->nb_layers);
   warnx("Loaded network with layers %s", output);
 
-  sgd(nt, training_data, training_data_length, epochs, 10, .05, 0.,
+  sgd(nt, training_data, training_data_length, epochs, set, rate, 0.,
       output_path, output_csv);
 
   warnx("Freeing network");
@@ -279,9 +245,10 @@ void charcodes(char data_path[], char output_path[])
   int* char_codes;
   size_t training_data_length;
   size_t char_codes_length;
+  int size;
 
   load_training_data(data_path, &training_data, &training_data_length,
-                     &char_codes, &char_codes_length);
+                     &char_codes, &char_codes_length, &size);
 
   FILE* fp = fopen(output_path, "w");
   fwrite(&char_codes_length, sizeof (size_t), 1, fp);
@@ -303,20 +270,20 @@ void print_usage()
 {
   printf(
     "Usage:\n"
-    "  train new <data_path> <output_path> <output_csv> <epochs> <hidden_layer_neurons>\n"
-    "  train continue <data_path> <output_path> <output_csv> <epochs> <path_to_network>\n"
+    "  train new <data_path> <output_path> <output_csv> <epochs> <sets> <rate> <hidden_layer_neurons>\n"
+    "  train continue <data_path> <output_path> <output_csv> <epochs> <sets> <rate> <path_to_network>\n"
     "  train charcodes <data_path> <output_file>\n"
     "  train checkout <network_path>\n"
     "\n"
     "Note: train does not create directories. The command will fail if output_path or output_csv point to non-existent directories.\n"
     "\n"
     "Examples:\n"
-    "$ train new data networks stats.csv 30 240\n"
-    "# Train a new network with 240 neurons in the hidden layer for 30 epochs.\n"
+    "$ train new data networks stats.csv 30 10 .25 240\n"
+    "# Train a new network with 240 neurons in the hidden layer for 30 epochs, with a learning rate of .25 and a mini-batch size of 10.\n"
     "# Load training data from ./data.\n"
     "# Save each epoch as epochN.network in the ./networks directory.\n"
     "\n"
-    "$ train continue data networks2 stats.csv  60 networks/epoch29.network\n"
+    "$ train continue data networks2 stats.csv 60 10 .25 networks/epoch29.network\n"
     "# Continue training the network saved at networks/epoch29.network for 60 additional epochs.\n"
     "# Load training data from ./data.\n"
     "# Save each epoch as epochN.network in the ./networks2 directory.\n"
@@ -357,22 +324,27 @@ int main(int argc, char* argv[])
       {
         char* output_csv = argv[4];
         unsigned long long epochs;
+        int sets;
+        double rate;
         sscanf(argv[5], "%llu", &epochs);
+        sscanf(argv[6], "%i", &sets);
+        sscanf(argv[7], "%lf", &rate);
         if (strcmp(cmd, "new") == 0)
         {
-          size_t hidden_layers_length = argc - 6;
+          size_t hidden_layers_length = argc - 8;
           size_t* hidden_layers = malloc(hidden_layers_length * sizeof (size_t));
           for (size_t i = 0; i < hidden_layers_length; ++i)
           {
-            sscanf(argv[6 + i], "%zu", hidden_layers + i);
+            sscanf(argv[8 + i], "%zu", hidden_layers + i);
           }
-          test_train(data_path, output_path, output_csv, epochs, hidden_layers,
-                     hidden_layers_length);
+          test_train(data_path, output_path, output_csv, epochs, sets, rate,
+                     hidden_layers, hidden_layers_length);
           free(hidden_layers);
         }
         else if (strcmp(cmd, "continue") == 0)
         {
-          test_continue_train(data_path, output_path, output_csv, epochs, argv[6]);
+          test_continue_train(data_path, output_path, output_csv, epochs, sets,
+                              rate, argv[8]);
         }
         else
         {
