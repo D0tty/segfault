@@ -629,42 +629,39 @@ void display_boxes(SDL_Surface* img, struct list* boxes, Uint32* colors,
   }
 }
 
-void text_print(struct list* text, int* charcodes)
+int text_print(wchar_t chars[], struct list* text, int* charcodes)
 {
+  int size = 0;
   for (size_t i = 0; i < text->size; ++i)
   {
     int* c = text->elems[i];
     int v = *c;
     if (v == -2)
-      printf(" ");
+      size += swprintf(chars + size, 100, L" ");
     else if (v == -3)
-      printf("\n");
+      size += swprintf(chars + size, 100, L"\n");
     else if (v == -4)
-      printf("\n\n");
+      size += swprintf(chars + size, 100, L"\n\n");
     else if (v == -5)
-      printf("  ");
+      size += swprintf(chars + size, 100, L"");
     else
     {
       wchar_t wc = charcodes[v];
-      wprintf(L"%lc", wc);
+      size += swprintf(chars + size, 100, L"%lc", wc);
     }
   }
+  return size;
 }
 
-int main(int argc, char* argv[])
+void the_world(char network_path[], char charcodes_path[], char image_path[],
+               SDL_Surface** visu_ptr, wchar_t** text_ptr,
+               size_t* text_size_ptr)
 {
-  if (argc < 4)
-  {
-    printf("histo <network> <charcodes> <image>\n");
-    return 0;
-  }
-
   setlocale(LC_ALL, "");
 
-  network* nt = network_load(argv[1]);
-  int* charcodes = charcodes_load(argv[2]);
+  network* nt = network_load(network_path);
+  int* charcodes = charcodes_load(charcodes_path);
 
-  char* image_path = argv[3];
   // TODO: Free surfaces
   SDL_Surface* img = load_image(image_path);
   SDL_Surface* grayscale = SDL_ConvertSurface(img, img->format, SDL_SWSURFACE);
@@ -737,16 +734,16 @@ int main(int argc, char* argv[])
   colors[3] = SDL_MapRGB(img->format, 255, 140, 50);
   colors[4] = SDL_MapRGB(img->format, 52, 255, 230);
   display_boxes(visu, para_boxes, colors, 5);
-  display_image(visu);
-  display_image(visu);
+  *visu_ptr = visu;
 
-  text_print(text, charcodes);
+  wchar_t* str = calloc(1, text->size * 4 * sizeof (wchar_t));
+  *text_ptr = str;
+  *text_size_ptr = text_print(str, text, charcodes);
+
 
   // TODO: free all the boxes
   free_network(nt);
   free(charcodes);
   free(graph);
   SDL_FreeSurface(img);
-
-  return 0;
 }
