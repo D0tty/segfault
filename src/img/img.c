@@ -9,7 +9,7 @@
 #include "img.h"
 #include "decoupage.h"
 
-#define THRESHOLD 150
+#define THRESHOLD 130
 #define PI 3.14159
 
 void wait_for_keypressed(void)
