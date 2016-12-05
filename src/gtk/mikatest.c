@@ -93,7 +93,9 @@ void result2 (GtkWidget *button, GtkWidget *imgbox)
   size_t text_length;
   wchar_t* text;
   the_world("all3.network", "all.charcodes", chemin, &img, &text, &text_length);
-  gtk_label_set_label(g_lab, (gchar*)text);
+  char* txt2  = malloc ( text_length * 2 * sizeof(char) );
+  wcstombs(txt2, text, text_length * 2);
+  gtk_label_set_label(g_lab, txt2);
   SDL_SaveBMP(img, "result");
   gtk_image_set_from_file(GTK_IMAGE(imgbox), "result");
   remove("result");
