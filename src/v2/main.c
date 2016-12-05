@@ -263,7 +263,9 @@ void box_dist(struct box* b1, struct box* b2, int* x_dist_ptr, int* y_dist_ptr)
   *y_dist_ptr = y_dist;
 }
 
-struct list* box_group(struct list* boxes, int (*grp)(struct box*, struct box*))
+struct list* box_group(struct list* boxes,
+                       int (*grp)(struct box*, struct box*, void* data),
+                       void* data)
 {
   struct list* parent_boxes = list_create();
   int* marked = calloc(1, boxes->size * sizeof (int));
@@ -294,7 +296,7 @@ struct list* box_group(struct list* boxes, int (*grp)(struct box*, struct box*))
           continue;
 
         struct box* b2 = boxes->elems[j];
-        if (grp(parent_box, b2))
+        if (grp(parent_box, b2, data))
         {
           int x1 = MIN(parent_box->x, b2->x);
           int x2 = MAX(parent_box->x + parent_box->width, b2->x + b2->width);
@@ -316,47 +318,96 @@ struct list* box_group(struct list* boxes, int (*grp)(struct box*, struct box*))
   return parent_boxes;
 }
 
-int elem_group(struct box* b1, struct box* b2)
+int box_contained_x(struct box* b1, struct box* b2)
 {
+  return b2->x >= b1->x && b2->x + b2->width <= b1->x + b1->width;
+}
+
+int box_contained_y(struct box* b1, struct box* b2)
+{
+  return b2->y >= b1->y && b2->y + b2->height <= b1->y + b1->height;
+}
+
+int box_contained(struct box* b1, struct box* b2)
+{
+  return box_contained_x(b1, b2) && box_contained_y(b1, b2);
+}
+
+// GROUP IN LINES
+int line_group(struct box* b1, struct box* b2, void* data)
+{
+  data = NULL;
   int x_dist;
   int y_dist;
+  // Biggest element (size reference)
   struct box* box = b1->children->elems[0];
-  box_dist(box, b2, &x_dist, &y_dist);
-  double ratio = b2->width * b2->height /
-                 (box->width * box->height);
-  int c1 = box->x + box->width / 2;
-  int c2 = b2->x + b2->width / 2;
-  // TODO: support punctuation...
-  return ratio < 0.2 && abs(c1 - c2) < b1->height * .1 && b2->y < box->y &&
-         (double)y_dist < b1->height * .3;
+  // Current line y center
+  int c1y = box->y + box->height / 2;
+  // New box y center
+  int c2y = b2->y + b2->height / 2;
+  // New line y center
+  box_dist(b1, b2, &x_dist, &y_dist);
+  return (
+    box_contained(b1, b2) ||
+    (
+      (double)abs(c1y - c2y) < box->height * 0.8 &&
+      (double)x_dist < box->height * 3
+    )
+  );
 }
 
-int char_group(struct box* b1, struct box* b2)
+// GROUP IN CHAR
+int char_group(struct box* b1, struct box* b2, void* data)
 {
-  int x_dist;
-  int y_dist;
+  data = NULL;
+  // Biggest element (size reference)
   struct box* box = b1->children->elems[0];
-  box_dist(b1, b2, &x_dist, &y_dist);
-  int c1 = box->y + box->height / 2;
-  int c2 = b2->y + b2->height / 2;
-  return (double)x_dist < b1->height * .3 && abs(c1 - c2) < b1->height * .3;
+  // Current line y center
+  int c1x = box->x + box->width / 2;
+  // New box y center
+  int c2x = b2->x + b2->width / 2;
+  // New line y center
+
+  return (
+    (double)abs(c1x - c2x) < box->height / 4 ||
+    box_contained_x(b1, b2)
+  );
 }
 
-int word_group(struct box* b1, struct box* b2)
+struct info {
+  int min_dist;
+  int max_dist;
+  double avg_dist;
+};
+
+// GROUP IN CHAR
+int word_group(struct box* b1, struct box* b2, void* data)
 {
-  int x_dist;
-  int y_dist;
-  box_dist(b1, b2, &x_dist, &y_dist);
-  return (double)x_dist < b1->height * 1.3 && y_dist == 0;
+  struct info* info = data;
+  // Biggest element (size reference)
+  int b1right = b1->x + b1->width;
+  int b2left = b2->x;
+  int b1left = b1->x;
+  int b2right = b2->x + b2->width;
+  int d1 = b2left - b1right;
+  int d2 = b1left - b2right;
+
+  return (
+    (d1 >= 0 && (double)d1 < info->avg_dist * 1.5) ||
+    (d2 >= 0 && (double)d2 < info->avg_dist * 1.5)
+  );
 }
 
-int line_group(struct box* b1, struct box* b2)
+int para_group(struct box* b1, struct box* b2, void* data)
 {
-  int x_dist;
-  int y_dist;
-  box_dist(b1, b2, &x_dist, &y_dist);
-  return (double)x_dist < b2->height * .1 &&
-         (double)y_dist < b2->height / 1.3;
+  data = NULL;
+  int b1bottom = b1->y + b1->height;
+  int b2top = b2->y;
+  int d3 = abs(b2top - b1bottom);
+
+  return (
+    (double)d3 < (double)b2->height
+  );
 }
 
 void resize_keep_ratio(int w, int h, int r, int* ow, int* oh)
@@ -444,7 +495,6 @@ void read_chars(struct list* boxes, struct list* text, SDL_Surface* img,
     {
       for (int x = 0; x < rw; ++x)
       {
-        // printf("%f\n", resized_image[y * rw + x]);
         min_value = MIN(min_value, resized_image[y * rw + x]);
         max_value = MAX(max_value, resized_image[y * rw + x]);
       }
@@ -534,12 +584,15 @@ void read_paragraphs(struct list* boxes, struct list* text, SDL_Surface* img,
 {
   for (size_t i = 0; i < boxes->size; ++i)
   {
+    int* begin_ptr = malloc(sizeof (int));
+    *begin_ptr = -5;
+    list_append(text, begin_ptr);
     struct box* box = boxes->elems[i];
     quick_sort(box->children->elems, box->children->size, box_compare_y_asc);
     read_lines(box->children, text, img, nt);
-    int* char_ptr = malloc(sizeof (int));
-    *char_ptr = -4;
-    list_append(text, char_ptr);
+    int* end_ptr = malloc(sizeof (int));
+    *end_ptr = -4;
+    list_append(text, end_ptr);
   }
 }
 
@@ -573,6 +626,28 @@ void display_boxes(SDL_Surface* img, struct list* boxes, Uint32* colors,
     }
     if (depth != 0)
       display_boxes(img, box->children, colors + 1, depth - 1);
+  }
+}
+
+void text_print(struct list* text, int* charcodes)
+{
+  for (size_t i = 0; i < text->size; ++i)
+  {
+    int* c = text->elems[i];
+    int v = *c;
+    if (v == -2)
+      printf(" ");
+    else if (v == -3)
+      printf("\n");
+    else if (v == -4)
+      printf("\n\n");
+    else if (v == -5)
+      printf("  ");
+    else
+    {
+      wchar_t wc = charcodes[v];
+      wprintf(L"%lc", wc);
+    }
   }
 }
 
@@ -618,10 +693,36 @@ int main(int argc, char* argv[])
   // Mose useful for char elem and char grouping.
   quick_sort(elem_boxes->elems, elem_boxes->size, box_compare_size_desc);
 
-  struct list* char_boxes = box_group(elem_boxes, elem_group);
-  struct list* word_boxes = box_group(char_boxes, char_group);
-  struct list* line_boxes = box_group(word_boxes, word_group);
-  struct list* para_boxes = box_group(line_boxes, line_group);
+  struct list* line_boxes = box_group(elem_boxes, line_group, NULL);
+  for (size_t i = 0; i < line_boxes->size; ++i)
+  {
+    struct box* line_box = line_boxes->elems[i];
+    struct list* elem_boxes = line_box->children;
+    quick_sort(elem_boxes->elems, elem_boxes->size, box_compare_x_asc);
+    struct list* char_boxes = box_group(elem_boxes, char_group, NULL);
+    quick_sort(char_boxes->elems, char_boxes->size, box_compare_x_asc);
+    int min_dist = 10000;
+    int max_dist = -10000;
+    double avg_dist = 0.;
+    for (size_t j = 0; j < char_boxes->size - 1; ++j)
+    {
+      struct box* char_box = char_boxes->elems[j];
+      struct box* next_char_box = char_boxes->elems[j + 1];
+      int dist = next_char_box->x - (char_box->x + char_box->width);
+      min_dist = min_dist >= 0 ? MIN(min_dist, dist) : min_dist;
+      max_dist = MAX(max_dist, dist);
+      avg_dist += (double)dist;
+    }
+    struct info* info = malloc(sizeof (struct info));
+    info->min_dist = min_dist;
+    info->max_dist = max_dist;
+    info->avg_dist = (avg_dist / (double)(char_boxes->size - 1));
+    struct list* word_boxes = box_group(char_boxes, word_group, info);
+    line_box->children = word_boxes;
+    // TODO: Free children
+  }
+  quick_sort(line_boxes->elems, line_boxes->size, box_compare_y_asc);
+  struct list* para_boxes = box_group(line_boxes, para_group, NULL);
 
   quick_sort(para_boxes->elems, para_boxes->size, box_compare_y_asc);
 
@@ -635,29 +736,11 @@ int main(int argc, char* argv[])
   colors[2] = SDL_MapRGB(img->format, 0, 0, 255);
   colors[3] = SDL_MapRGB(img->format, 255, 140, 50);
   colors[4] = SDL_MapRGB(img->format, 52, 255, 230);
-  display_boxes(visu, para_boxes, colors, 4);
-  display_image(visu);
-  display_image(visu);
-  display_image(visu);
+  display_boxes(visu, para_boxes, colors, 5);
   display_image(visu);
   display_image(visu);
 
-  for (size_t i = 0; i < text->size; ++i)
-  {
-    int* c = text->elems[i];
-    int v = *c;
-    if (v == -2)
-      printf(" ");
-    else if (v == -3)
-      printf("\n");
-    else if (v == -4)
-      printf("\n--\n");
-    else
-    {
-      wchar_t wc = charcodes[v];
-      wprintf(L"%lc", wc);
-    }
-  }
+  text_print(text, charcodes);
 
   // TODO: free all the boxes
   free_network(nt);
