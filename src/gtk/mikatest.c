@@ -6,7 +6,7 @@
 #include "../img/img.h"
 
 char* chemin;
-
+double degre=0;
 
 //quit
 void quit (GtkToggleButton *tbutton, gpointer data)
@@ -22,6 +22,25 @@ void ouvrir(GtkWidget *button, GtkWidget *imgbox)
   gtk_image_set_from_file(GTK_IMAGE(imgbox), filename);
 }
 
+
+void save(GtkWidget *button, GtkLabel *label) 
+{
+  const char* text;
+  text = gtk_label_get_label(label);
+  char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(button));
+  FILE* fichier = NULL;
+  fichier = fopen(strcat(filename,"text.txt"),"w");
+  if (fichier != NULL)
+  {
+    fputs(text, fichier);
+    fclose(fichier);
+  }
+}
+
+
+
+
+
 void grey(GtkWidget *button, GtkWidget *imgbox)
 {
   init_sdl();
@@ -33,7 +52,7 @@ void grey(GtkWidget *button, GtkWidget *imgbox)
   free(img);
 }
 
-void tobin(GtkWidget *button, GtkWidget *imgbox)                                 
+void tobin(GtkWidget *button, GtkWidget *imgbox)                 
 {                                                                               
   init_sdl();                                                                   
   SDL_Surface *img = load_image(chemin);                                        
@@ -52,6 +71,56 @@ void result (GtkWidget *button, GtkLabel *label)
   gtk_label_set_label(label, text);
 }
 
+void l_rot(GtkWidget *button, GtkWidget *imgbox)      
+{                                                                              
+  init_sdl();                                                                   
+  SDL_Surface *img = load_image(chemin);                                        
+  
+  img = left_rotation(img);
+  SDL_SaveBMP(img, "new_img_grey");                                             
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");                   
+  remove("new_img_grey");                                                       
+  free(img);                                                                    
+}  
+
+
+void r_rot(GtkWidget *button, GtkWidget *imgbox)                                
+{                                                                               
+  init_sdl();                                                                   
+  SDL_Surface *img = load_image(chemin);                                        
+  img = right_rotation(img);                         
+  SDL_SaveBMP(img, "new_img_bw");                                             
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_bw");                   
+  remove("new_img_bw");                                                       
+  free(img);                                                                    
+}
+
+void rot(GtkWidget *button, GtkWidget *imgbox)                                
+{                                                                               
+  init_sdl();                                                                   
+  SDL_Surface *img = load_image(chemin); 
+  img = rotation(img,degre);
+  SDL_SaveBMP(img, "new_img_grey");                             
+  gtk_image_set_from_file(GTK_IMAGE(imgbox), "new_img_grey");                   
+  remove("new_img_grey");                                                       
+  free(img);                                                                    
+}     
+
+void more(GtkWidget *button, GtkLabel *label)
+{
+  degre += 5;
+  char text[5];
+  snprintf(text,5,"%f",degre);
+  gtk_label_set_label(label,text);
+}
+
+void less(GtkWidget *button, GtkLabel *label)                                  
+{                                                                               
+  degre -= -1;                                                             
+  char text[5];           
+  snprintf(text,5,"%f",degre);
+  gtk_label_set_label(label,text);                                              
+}
 
 /*
 void save (GtkWidget *button, GtkWidget *imgbox)
