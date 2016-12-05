@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL/SDL.h>
@@ -103,6 +104,10 @@ void result2 (GtkWidget *button, GtkWidget *imgbox)
 
 void l_rot(GtkWidget *button, GtkWidget *imgbox)
 {
+  if (strcmp(chemin,"") ==0)
+  {
+    return;
+  }
   init_sdl();
   SDL_Surface *img;
   if (g_img == NULL)
@@ -178,9 +183,9 @@ void less(GtkWidget *button, GtkLabel *label)
   gtk_label_set_label(label,text);
 }
 
-/*
-   void save (GtkWidget *button, GtkWidget *imgbox)
-   {
+
+/*void save_lab(GtkWidget *button, GtkWidget *imgbox)
+{
 //chooser = GTK_FILE_CHOOSER (dialog);
 
 char* path = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER(button));
@@ -205,7 +210,7 @@ gtk_image_set_from_file (GTK_IMAGE(image) , filename);
 g_free (filename);
 }
 gtk_widget_destroy (dialog);
-}*/
+}
 
 GtkBuilder* get_build()
 {
@@ -215,7 +220,7 @@ GtkBuilder* get_build()
     build = gtk_builder_new();
   }
   return build;
-}
+}*/
 
 int main (int argc, char *argv[])
 {
@@ -226,7 +231,7 @@ int main (int argc, char *argv[])
 
 
   builder=gtk_builder_new();
-  gtk_builder_add_from_file( builder, "mikatest.glade", NULL);
+  gtk_builder_add_from_file( builder, "main.glade", NULL);
 
   gtk_builder_connect_signals (builder, NULL);
 

@@ -9,7 +9,7 @@ LDFLAGS=
 LDLIBS= `pkg-config --libs gtk+-3.0 gmodule-2.0` -lSDL_image -lSDL -lm -lrt
 
 SRC= ../v2/world.c ../v2/quick_sort.c ../v2/list.c ../v2/sdl.c ../img/img.c \
-		 ../img/decoupage.c mikatest.c\
+		 ../img/decoupage.c main.c\
 		 ../nn/network.c ../util/vector.c ../util/gaussrand.c ../util/debug.c \
 		 ../util/shuffle.c
 OBJ= ${SRC:.c=.o}
@@ -18,7 +18,7 @@ BIN= ${SRC:.c=}
 
 #all: gtkpxe gtk
 
-all: mikatest
+all: main
 	make pro
 
 -include ${DEP}
@@ -26,7 +26,7 @@ all: mikatest
 train:
 	make ../train/train
 
-mikatest: ${OBJ}
+main: ${OBJ}
 
 gtk: ${OBJ}
 
